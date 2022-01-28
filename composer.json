@@ -25,8 +25,7 @@
         "drewlabs/contracts": "^2.0",
         "drewlabs/core-helpers": "^2.0",
         "drewlabs/http-client": "^1.0",
-        "drewlabs/support": "^2.0",
-        "predis/predis": "^1.1"
+        "drewlabs/support": "^2.0"
     },
     "repositories":[
         {
@@ -49,5 +48,11 @@
             "type": "vcs",
             "url": "git@github.com:liksoft/drewlabs-auth-laravel-passport.git"
         }
-    ]
+    ],    
+    "suggest": {
+        "predis/predis": "Required to use the redis cache provider (^1.1)."
+    },
+    "config": {
+        "sort-packages": true
+    }
 }
