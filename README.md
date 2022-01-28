@@ -16,7 +16,7 @@ developper to add the git repository to the list of vcs repository.
     "drewlabs/contracts": "^2.0",
     "drewlabs/core-helpers": "^2.0",
     "drewlabs/http-client": "^1.0",
-    "drewlabs/support": "^2.0
+    "drewlabs/support": "^2.0"
   },
   
   "repositories":[
