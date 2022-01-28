@@ -48,7 +48,7 @@ class Guard
      */
     public function __invoke($request)
     {
-        foreach (Arr::wrap(HttpGuardGlobals::guards()) as $guard) {
+        foreach (Arr::wrap(HttpGuardGlobals::guard()) as $guard) {
             if ($user = $this->auth->guard($guard)->user()) {
                 return $this->supportsTokens($user)
                     ? $user->withAccessToken(new TransientToken)

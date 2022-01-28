@@ -80,6 +80,13 @@ class HttpGuardGlobals
     private static $AUTHENTICATABLE_CLASS = User::class;
 
     /**
+     * Possible values array|redis|memcahed(not supported yet)
+     * 
+     * @var string
+     */
+    private static $DEFAULT_CACHE_DRIVER = 'array';
+
+    /**
      * 
      * @param array<int,array<string,string|bool>> $nodes 
      * @return array<int,array<string,string|bool>> 
@@ -179,10 +186,10 @@ class HttpGuardGlobals
 
     /**
      * 
-     * @param string|array<int,string>|null $guard 
+     * @param string|null $guard 
      * @return string 
      */
-    public static function guards($guard = null)
+    public static function guard($guard = null)
     {
         if (null !== $guard) {
             static::$GUARD_DRIVER = $guard;
@@ -196,5 +203,15 @@ class HttpGuardGlobals
             static::$AUTHENTICATABLE_CLASS = $authClass;
         }
         return static::$AUTHENTICATABLE_CLASS;
+    }
+
+    public static function useCacheDriver(string $driver)
+    {
+        static::$DEFAULT_CACHE_DRIVER = $driver;
+    }
+
+    public static function defaultCacheDriver()
+    {
+        return static::$DEFAULT_CACHE_DRIVER;
     }
 }

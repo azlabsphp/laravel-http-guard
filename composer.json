@@ -3,8 +3,7 @@
     "description": "This package provide implementation of an authentication guard that use http connection to query for authenticated user from a remote source",
     "type": "library",
     "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "drewlabs/oauth-user": "^2.0"
+        "phpunit/phpunit": "^9.5"
     },
     "license": "MIT",
     "autoload": {
@@ -22,6 +21,7 @@
     "require": {
         "php": "^7.3|^7.4|^8.0",
         "illuminate/contracts": "^5.4|^6.0|^7.0|^8.0",
+        "illuminate/support": "^5.4|^6.0|^7.0|^8.0",
         "drewlabs/contracts": "^2.0",
         "drewlabs/core-helpers": "^2.0",
         "drewlabs/http-client": "^1.0",
@@ -43,10 +43,6 @@
         {
             "type": "vcs",
             "url": "git@github.com:liksoft/drewlabs-php-support.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:liksoft/drewlabs-auth-laravel-passport.git"
         }
     ],    
     "suggest": {
@@ -54,5 +50,12 @@
     },
     "config": {
         "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Drewlabs\\AuthHttpGuard\\ServiceProvider"
+            ]
+        }
     }
 }
