@@ -1,5 +1,7 @@
 <?php
 
+namespace Drewlabs\AuthHttpGuard;
+
 use Drewlabs\AuthHttpGuard\ArrayCacheProvider;
 use Drewlabs\AuthHttpGuard\RedisCacheProvider;
 use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;

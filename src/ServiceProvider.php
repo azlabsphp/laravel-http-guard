@@ -2,7 +2,6 @@
 
 namespace Drewlabs\AuthHttpGuard;
 
-use CacheProviderFactory;
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Illuminate\Support\ServiceProvider as SupportServiceProvider;
 use Illuminate\Support\Facades\Auth;
