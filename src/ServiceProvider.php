@@ -20,6 +20,26 @@ use Illuminate\Support\ServiceProvider as SupportServiceProvider;
 
 class ServiceProvider extends SupportServiceProvider
 {
+    /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        Auth::resolved(function ($auth) {
+            $auth->extend('http', function ($app) use ($auth) {
+                return tap($this->createGuardInstance($app, $auth), static function ($guard) use ($app) {
+                    $app->refresh('request', $guard, 'setRequest');
+                });
+            });
+        });
+
+        if (!$this->app->runningInConsole()) {
+            $this->initializeAuthServerNodeChecker();
+        }
+    }
+
     public function register()
     {
         $this->app->bind(ApiTokenAuthenticatableProvider::class, static function ($app) {
@@ -34,16 +54,6 @@ class ServiceProvider extends SupportServiceProvider
 
             return new AuthenticatableProvider($factory->make(HttpGuardGlobals::defaultCacheDriver()));
         });
-
-        if (class_exists(RequestGuard::class)) {
-            Auth::resolved(function ($auth) {
-                $auth->extend(HttpGuardGlobals::guard(), function ($app) use ($auth) {
-                    return tap($this->createGuardInstance($app, $auth), static function ($guard) use ($app) {
-                        $app->refresh('request', $guard, 'setRequest');
-                    });
-                });
-            });
-        }
     }
 
     /**
@@ -60,5 +70,10 @@ class ServiceProvider extends SupportServiceProvider
             $app['request'],
             null
         );
+    }
+
+    private function initializeAuthServerNodeChecker()
+    {
+        AuthServerNodesChecker::setClusterAvailableNodeIfMissing();
     }
 }

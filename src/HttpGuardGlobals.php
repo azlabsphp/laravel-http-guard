@@ -26,7 +26,7 @@ class HttpGuardGlobals
     /**
      * @var array<string,string|array<int,string>>
      */
-    private static $AUTH_SERVER_NODES = [
+    private static $AUTH_SERVERS_CLUSTER = [
         [
             'host' => 'http://localhost:4300',
             'primary' => true,
@@ -40,6 +40,12 @@ class HttpGuardGlobals
             'primary' => false,
         ],
     ];
+
+    /**
+     *
+     * @var string
+     */
+    private static $DEFAULT_AUTH_SERVER_NODE = 'http://localhost:4300';
 
     /**
      * Route to users resource.
@@ -75,7 +81,7 @@ class HttpGuardGlobals
     /**
      * @var string
      */
-    private static $GUARD_DRIVER = 'http';
+    private static $DEFAULT_GUARD_DRIVER = 'web';
 
     /**
      * @var string
@@ -104,7 +110,7 @@ class HttpGuardGlobals
     ];
 
     /**
-     * 
+     *
      * @var string
      */
     private static $CACHE_PREFIX = 'drewlabs_http_guard_';
@@ -127,10 +133,10 @@ class HttpGuardGlobals
             if (1 !== $count) {
                 throw new \InvalidArgumentException('Auth Servers cluster nodes must contains only one primary node');
             }
-            static::$AUTH_SERVER_NODES = $nodes;
+            static::$AUTH_SERVERS_CLUSTER = $nodes;
         }
 
-        return static::$AUTH_SERVER_NODES;
+        return static::$AUTH_SERVERS_CLUSTER;
     }
 
     /**
@@ -216,10 +222,10 @@ class HttpGuardGlobals
     public static function guard($guard = null)
     {
         if (null !== $guard) {
-            static::$GUARD_DRIVER = $guard;
+            static::$DEFAULT_GUARD_DRIVER = $guard;
         }
 
-        return static::$GUARD_DRIVER;
+        return static::$DEFAULT_GUARD_DRIVER;
     }
 
     public static function authenticatableClass(?string $authClass = null)
@@ -257,5 +263,15 @@ class HttpGuardGlobals
         }
 
         return static::$CACHE_PREFIX;
+    }
+
+    public static function defaultAuthServerNode(?string $host = null)
+    {
+
+        if (null !== $host) {
+            static::$DEFAULT_AUTH_SERVER_NODE = $host;
+        }
+
+        return static::$DEFAULT_AUTH_SERVER_NODE;
     }
 }

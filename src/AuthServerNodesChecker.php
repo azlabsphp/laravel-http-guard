@@ -20,14 +20,12 @@ use Generator;
 
 class AuthServerNodesChecker
 {
-    /**
-     * @var string
-     */
-    private $writePath = __DIR__.'/../cache/node.sock';
 
-    public function __construct(?string $writePath = null)
+    public static function setClusterAvailableNodeIfMissing()
     {
-        $this->writePath = $writePath ?? $this->writePath;
+        if (!file_exists(HttpGuardGlobals::nodeServerCachePath())) {
+            static::setAvailableNode();
+        }
     }
 
     public static function setAvailableNode()
@@ -51,18 +49,20 @@ class AuthServerNodesChecker
 
             // TODO : Use the default primary node if the Ping executor is not provided
             if (!class_exists(Client::class)) {
-                return file_put_contents(HttpGuardGlobals::nodeServerCachePath(), $primaryNode);
+                return static::writeCache(HttpGuardGlobals::nodeServerCachePath(), $primaryNode);
             }
 
             if ($primaryNode && static::isHostAvailable($primaryNode)) {
-                return file_put_contents(HttpGuardGlobals::nodeServerCachePath(), $primaryNode);
+                return static::writeCache(HttpGuardGlobals::nodeServerCachePath(), $primaryNode);
             }
 
             foreach (static::querySecondaryNodes($nodes) as $node) {
-                return file_put_contents(HttpGuardGlobals::nodeServerCachePath(), $node);
+                return static::writeCache(HttpGuardGlobals::nodeServerCachePath(), $node);
             }
             // Delete file if no node is present
-            @unlink(HttpGuardGlobals::nodeServerCachePath());
+            if (file_exists(HttpGuardGlobals::nodeServerCachePath())) {
+                @unlink(HttpGuardGlobals::nodeServerCachePath());
+            }
         }
     }
 
@@ -70,10 +70,13 @@ class AuthServerNodesChecker
     {
         $host = @file_get_contents(HttpGuardGlobals::nodeServerCachePath());
         if (false === $host) {
+            $host =  HttpGuardGlobals::defaultAuthServerNode();
+        }
+        if (!$host) {
             throw new \RuntimeException('No auth server node available');
         }
         if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $host)) {
-            return 'http://'.gethostbyaddr($host);
+            return 'http://' . gethostbyaddr($host);
         }
 
         return $host;
@@ -98,5 +101,15 @@ class AuthServerNodesChecker
         $result = $pingClient->request(Str::contains($host, 'localhost') ? Method::FSOCKOPEN : Method::EXEC_BIN);
 
         return false !== (bool) ($result->latency());
+    }
+
+    private static function writeCache(string $path, ?string $data) {
+        $fd = @fopen($path, 'w');
+        if ($fd && flock($fd, \LOCK_EX | \LOCK_NB)) {
+            fwrite($fd, $data);
+            flock($fd, \LOCK_UN);
+            @fclose($fd);
+        }
+        return false;
     }
 }

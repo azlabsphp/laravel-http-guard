@@ -21,6 +21,7 @@ use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Core\Helpers\Arr;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 
 class Guard
 {
@@ -56,12 +57,16 @@ class Guard
      */
     public function __invoke($request)
     {
-        foreach (Arr::wrap(HttpGuardGlobals::guard()) as $guard) {
-            if ($user = $this->auth->guard($guard)->user()) {
-                return $this->supportsTokens($user)
-                    ? $user->withAccessToken(new TransientToken())
-                    : $user;
+        try {
+            foreach (Arr::wrap(HttpGuardGlobals::guard()) as $guard) {
+                if ($user = $this->auth->guard($guard)->user()) {
+                    return $this->supportsTokens($user)
+                        ? $user->withAccessToken(new TransientToken())
+                        : $user;
+                }
             }
+        } catch (InvalidArgumentException $e) {
+            // TODO : Throw new GuardNotFoundException
         }
         if ($token = $request->bearerToken()) {
             try {

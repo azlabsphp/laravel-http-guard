@@ -3,4 +3,3 @@ composer.lock
 /lib
 index.php
 scripts.log
-/cache/*
