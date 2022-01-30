@@ -25,8 +25,7 @@
         "drewlabs/http-client": "^1.0",
         "drewlabs/support": "^2.0",
         "illuminate/contracts": "^5.4|^6.0|^7.0|^8.0",
-        "illuminate/support": "^5.4|^6.0|^7.0|^8.0",
-        "predis/predis": "^1.1"
+        "illuminate/support": "^5.4|^6.0|^7.0|^8.0"
     },
     "repositories":[
         {
@@ -47,7 +46,8 @@
         }
     ],    
     "suggest": {
-        "predis/predis": "Required to use the redis cache provider (^1.1)."
+        "predis/predis": "Required to use the redis cache provider.",
+        "ext/memcached": "Required to use the memcached provider."
     },
     "config": {
         "sort-packages": true
