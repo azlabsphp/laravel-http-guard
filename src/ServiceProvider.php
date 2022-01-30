@@ -48,10 +48,13 @@ class ServiceProvider extends SupportServiceProvider
             // Load memcached configurations
             HttpGuardGlobals::forMemcached($config['database.stores.memcached']);
             // Load user configuration
-            $provider = $config->get('auth.guards.'.HttpGuardGlobals::guard().'.provider');
-            $model = $config->get('providers.'.$provider.'.model');
-            HttpGuardGlobals::authenticatableClass($model ?? class_exists(\Drewlabs\OAuthUser\User::class) ? Drewlabs\OAuthUser\User::class : User::class);
-
+            $provider = $config->get('auth.guards.http.driver');
+            $model = $config->get('auth.providers.'.$provider.'.model');
+            $authServerNode = $config->get('auth.providers.'.$provider.'.hosts.default');
+            $cluster = $config->get('auth.providers.'.$provider.'.hosts.cluster');
+            HttpGuardGlobals::authenticatableClass($model ?? (class_exists(\Drewlabs\OAuthUser\User::class) ? Drewlabs\OAuthUser\User::class : User::class));
+            HttpGuardGlobals::defaultAuthServerNode($authServerNode); //
+            HttpGuardGlobals::hosts($cluster);
             return new AuthenticatableProvider($factory->make(HttpGuardGlobals::defaultCacheDriver()));
         });
     }

@@ -26,20 +26,7 @@ class HttpGuardGlobals
     /**
      * @var array<string,string|array<int,string>>
      */
-    private static $AUTH_SERVERS_CLUSTER = [
-        [
-            'host' => 'http://localhost:4300',
-            'primary' => true,
-        ],
-        [
-            'host' => 'http://localhost:8000',
-            'primary' => false,
-        ],
-        [
-            'host' => 'http://localhost:8888',
-            'primary' => false,
-        ],
-    ];
+    private static $AUTH_SERVERS_CLUSTER = [];
 
     /**
      *

@@ -17,6 +17,7 @@ use Drewlabs\Core\Helpers\Str;
 use Drewlabs\Support\Net\Ping\Client;
 use Drewlabs\Support\Net\Ping\Method;
 use Generator;
+use LogicException;
 
 class AuthServerNodesChecker
 {
@@ -103,7 +104,12 @@ class AuthServerNodesChecker
         return false !== (bool) ($result->latency());
     }
 
-    private static function writeCache(string $path, ?string $data) {
+    private static function writeCache(string $path, ?string $data)
+    {
+        if (($dirname = @pathinfo($path, \PATHINFO_DIRNAME)) === false) {
+            throw new LogicException('Failed to create file at path ' . $path);
+        }
+        self::createDirectoryIfNotExists($dirname);
         $fd = @fopen($path, 'w');
         if ($fd && flock($fd, \LOCK_EX | \LOCK_NB)) {
             fwrite($fd, $data);
@@ -111,5 +117,16 @@ class AuthServerNodesChecker
             @fclose($fd);
         }
         return false;
+    }
+
+    private static function createDirectoryIfNotExists(string $path, ?int $mode = 0755)
+    {
+        if (!@mkdir($path, $mode, true)) {
+            $mkdirError = error_get_last();
+        }
+        clearstatcache(false, $path);
+        if (!is_dir($path)) {
+            throw new LogicException($mkdirError['message'] ?? '');
+        }
     }
 }
