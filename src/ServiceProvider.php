@@ -57,7 +57,7 @@ class ServiceProvider extends SupportServiceProvider
     {
         return new RequestGuard(
             new Guard($auth, $app[ApiTokenAuthenticatableProvider::class]),
-            $app('request'),
+            $app['request'],
             null
         );
     }
