@@ -1,18 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Drewlabs package.
+ *
+ * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Drewlabs\AuthHttpGuard;
 
-use DateTimeImmutable;
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\AuthHttpGuard\Traits\ContainerAware;
 use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\Support\Traits\AttributesAware;
 
-/** @package Drewlabs\AuthHttpGuard */
 class AccessToken implements Token
 {
-    use AttributesAware, ContainerAware;
+    use AttributesAware;
+    use ContainerAware;
 
     public function __construct(array $attributes = [])
     {
@@ -26,9 +36,9 @@ class AccessToken implements Token
                 /**
                  * @var ApiTokenAuthenticatableProvider
                  */
-                $provider = static::createResolver(ApiTokenAuthenticatableProvider::class)() ?? new AuthenticatableProvider;
+                $provider = static::createResolver(ApiTokenAuthenticatableProvider::class)() ?? new AuthenticatableProvider();
             } catch (\Throwable $th) {
-                $provider = new AuthenticatableProvider;
+                $provider = new AuthenticatableProvider();
             }
             $provider->revokeOAuthToken($this->authToken);
         }
@@ -47,8 +57,9 @@ class AccessToken implements Token
     public function can($ability)
     {
         $abilities = $this->abilities();
-        return in_array('*', $abilities) ||
-            array_key_exists($ability, array_flip($abilities));
+
+        return \in_array('*', $abilities, true) ||
+            \array_key_exists($ability, array_flip($abilities));
     }
 
     public function cant($ability)
@@ -62,7 +73,8 @@ class AccessToken implements Token
         if (null === $expires_at) {
             return true;
         }
-        return !drewlabs_core_datetime_is_future(new DateTimeImmutable($expires_at));
+
+        return !drewlabs_core_datetime_is_future(new \DateTimeImmutable($expires_at));
     }
 
     public function expiresAt()

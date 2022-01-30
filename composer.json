@@ -20,12 +20,13 @@
     "minimum-stability": "stable",
     "require": {
         "php": "^7.3|^7.4|^8.0",
-        "illuminate/contracts": "^5.4|^6.0|^7.0|^8.0",
-        "illuminate/support": "^5.4|^6.0|^7.0|^8.0",
         "drewlabs/contracts": "^2.0",
         "drewlabs/core-helpers": "^2.0",
         "drewlabs/http-client": "^1.0",
-        "drewlabs/support": "^2.0"
+        "drewlabs/support": "^2.0",
+        "illuminate/contracts": "^5.4|^6.0|^7.0|^8.0",
+        "illuminate/support": "^5.4|^6.0|^7.0|^8.0",
+        "predis/predis": "^1.1"
     },
     "repositories":[
         {

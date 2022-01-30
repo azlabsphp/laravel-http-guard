@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Drewlabs\AuthHttpGuard\Traits;
 
-use Exception;
 use Psr\Container\ContainerInterface;
 
 trait ContainerAware
@@ -48,10 +47,10 @@ trait ContainerAware
             if ($container instanceof ContainerInterface) {
                 return $container->get($abstract);
             }
-            if (!is_object($container)) {
-                throw new Exception('A container instance is required to create a resolver');
+            if (!\is_object($container)) {
+                throw new \Exception('A container instance is required to create a resolver');
             }
-            throw new \InvalidArgumentException(\get_class($container) . ' is not a ' . ContainerInterface::class . ' nor ' . \Illuminate\Container\Container::class . ' and is not array accessible');
+            throw new \InvalidArgumentException(\get_class($container).' is not a '.ContainerInterface::class.' nor '.\Illuminate\Container\Container::class.' and is not array accessible');
         };
     }
 }

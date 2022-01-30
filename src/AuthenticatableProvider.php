@@ -1,52 +1,62 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Drewlabs package.
+ *
+ * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Drewlabs\AuthHttpGuard;
 
-use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
+use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\AuthHttpGuard\Exceptions\ServerException;
 use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
-use Drewlabs\AuthHttpGuard\ArrayCacheProvider;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Core\Helpers\Arr;
-use Drewlabs\HttpClient\Core\HttpClientCreator;
-use Exception;
 use Drewlabs\HttpClient\Contracts\HttpClientInterface;
-use GuzzleHttp\Exception\BadResponseException;
-use ReflectionException;
-use ReflectionMethod;
-use RuntimeException;
+use Drewlabs\HttpClient\Core\HttpClientCreator;
 use Drewlabs\Support\Traits\AttributesAware;
+use GuzzleHttp\Exception\BadResponseException;
 
-/** @package Drewlabs\AuthHttpGuard */
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 {
     /**
-     * 
      * @var AuthenticatableCacheProvider
      */
     private $cache;
 
     /**
-     * 
      * @var HttpClientInterface
      */
     private $client;
 
     /**
-     * 
      * @var bool
      */
     private $useCache = false;
 
-    public function __construct(AuthenticatableCacheProvider $cache = null)
+    public function __construct(?AuthenticatableCacheProvider $cache = null)
     {
         $this->cache = $cache ?? ArrayCacheProvider::load();
         try {
             $this->client = HttpClientCreator::createHttpClient(AuthServerNodesChecker::getAuthServerNode());
-        } catch (RuntimeException $e) {
+        } catch (\RuntimeException $e) {
             $this->useCache = true;
+        }
+    }
+
+    public function __destruct()
+    {
+        if (($cache = $this->getCacheProvider()) instanceof ArrayCacheProvider) {
+            $cache->prune();
+            ArrayCacheProvider::dump($cache);
         }
     }
 
@@ -58,11 +68,11 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 ->get(HttpGuardGlobals::revokePath());
         } catch (BadResponseException $e) {
             $response = $e->getResponse();
-            if ($response->getStatusCode() === 401) {
+            if (401 === $response->getStatusCode()) {
                 throw new UnAuthorizedException($token, $response->getStatusCode());
             }
             throw $e;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new ServerException($e->getMessage(), $e->getCode(), $e);
         }
     }
@@ -78,13 +88,12 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 ->withBearerToken($token)
                 ->get(HttpGuardGlobals::userPath());
             /**
-             * 
              * @var array
              */
             $serialized = json_decode($response->getBody()->getContents(), true);
             $class = HttpGuardGlobals::authenticatableClass();
             if (class_exists($class) && !$this->isAttributeAware($class)) {
-                throw new Exception('Authenticatable class must define a createFromAttributes static method or use ' . AttributesAware::class . ' trait!');
+                throw new \Exception('Authenticatable class must define a createFromAttributes static method or use '.AttributesAware::class.' trait!');
             }
             $user = forward_static_call([$class, 'createFromAttributes'], Arr::except($serialized, ['accessToken']));
             if ($this->supportsTokens($user)) {
@@ -98,17 +107,19 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             if (HttpGuardGlobals::usesCache()) {
                 $this->cache->write($token, $user);
             }
+
             return $user;
         } catch (BadResponseException $e) {
             if (!$e->hasResponse()) {
                 return null;
             }
             $response = $e->getResponse();
-            if ($response->getStatusCode() === 401) {
+            if (401 === $response->getStatusCode()) {
                 throw new UnAuthorizedException($token, $response->getStatusCode());
             }
+
             return null;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             if (HttpGuardGlobals::usesCache()) {
                 return $this->getAuthenticatableFromCache($token);
             }
@@ -126,17 +137,11 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         return $this->cache;
     }
 
-    public function __destruct()
-    {
-        if (($cache = $this->getCacheProvider()) instanceof ArrayCacheProvider) {
-            ArrayCacheProvider::dump($cache);
-        }
-    }
-
     /**
      * Determine if the tokenable model supports API tokens.
      *
-     * @param  mixed  $tokenable
+     * @param mixed $tokenable
+     *
      * @return bool
      */
     private function supportsTokens($tokenable = null)
@@ -146,15 +151,16 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
     private function isAttributeAware($object)
     {
-        $object = is_object($object) ? get_class($object) : $object;
-        $is_static = function ($object, $method) {
+        $object = \is_object($object) ? \get_class($object) : $object;
+        $is_static = static function ($object, $method) {
             try {
-                return (new ReflectionMethod($object, $method))->isStatic();
-            } catch (ReflectionException $e) {
+                return (new \ReflectionMethod($object, $method))->isStatic();
+            } catch (\ReflectionException $e) {
                 return false;
             }
         };
-        return in_array(AttributesAware::class, drewlabs_class_recusive_uses($object)) ||
+
+        return \in_array(AttributesAware::class, drewlabs_class_recusive_uses($object), true) ||
             (method_exists($object, 'createFromAttributes') && $is_static($object, 'createFromAttributes'));
     }
 }

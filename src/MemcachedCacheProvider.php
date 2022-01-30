@@ -17,12 +17,11 @@ use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\AuthHttpGuard\Exceptions\AuthenticatableNotFoundException;
 use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\Contracts\Auth\Authenticatable;
-use Predis\Client;
 
-class RedisCacheProvider implements AuthenticatableCacheProvider
+class MemcachedCacheProvider implements AuthenticatableCacheProvider
 {
     /**
-     * @var Client
+     * @var \Memcached
      */
     private $client;
 
@@ -32,42 +31,32 @@ class RedisCacheProvider implements AuthenticatableCacheProvider
      */
     private $prefix;
 
-    public function __construct()
+    public function __construct(\Memcached $client)
     {
-        try {
-            $this->client = new Client(HttpGuardGlobals::redis());
-        } catch (\Exception $e) {
-            throw new \RuntimeException($e->getMessage());
-        }
+        $this->client = $client;
         $this->prefix = HttpGuardGlobals::cachePrefix();
     }
 
     public function write(string $id, Authenticatable $user)
     {
-        $id = $this->resolveKey($id);
-        if ($this->client->exists($id)) {
-            $this->client->del($id);
-        }
         $expiresAt = $user instanceof User ? new \DateTimeImmutable($user->tokenExpiresAt()) : null;
-        $expires = $expiresAt ?
-            drewlabs_core_datetime_secs_diff(
-                $expiresAt,
-                drewlabs_core_datetime_now()
-            ) : null;
-        if ($expires && ($expires <= 0)) {
+        $expiration = $expiresAt ? drewlabs_core_datetime_secs_diff($expiresAt, drewlabs_core_datetime_now()) : null;
+        if ($expiration && ($expiration <= 0)) {
             return;
         }
-        $this->client->set($id, serialize($user));
-        $this->client->expire($id, $expires);
+        if ($this->exists($id)) {
+            $this->delete($id, serialize($user), $expiration);
+        }
+        $this->client->add($this->resolveKey($id), serialize($user), $expiration);
     }
 
-    public function read(string $id): Authenticatable
+    public function read(string $id): ?Authenticatable
     {
-        $id = $this->resolveKey($id);
-        if (!$this->client->exists($id)) {
+        $serialized = $this->client->get($this->resolveKey($id));
+        if (false === $serialized) {
             throw new AuthenticatableNotFoundException($id);
         }
-        $user = unserialize($this->client->get($id));
+        $user = unserialize($serialized);
         if (($user instanceof User) && ($user->tokenExpires())) {
             throw new TokenExpiresException($id);
         }
@@ -77,16 +66,22 @@ class RedisCacheProvider implements AuthenticatableCacheProvider
 
     public function delete(string $id)
     {
-        $id = $this->resolveKey($id);
-        $this->client->del($id);
+        $this->client->delete($this->resolveKey($id));
     }
 
     public function prune()
     {
     }
 
+    private function exists(string $key)
+    {
+        $this->client->get($this->resolveKey($key));
+
+        return \Memcached::RES_NOTFOUND !== $this->client->getResultCode();
+    }
+
     private function resolveKey(string $key)
     {
-        return $this->prefix . sha1($key);
+        return $this->prefix.sha1($key);
     }
 }

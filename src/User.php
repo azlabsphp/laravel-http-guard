@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Drewlabs package.
+ *
+ * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Traits\Authenticatable as TraitsAuthenticatable;
@@ -11,14 +22,12 @@ use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Support\Traits\AttributesAware;
 use Illuminate\Contracts\Auth\Authenticatable as AuthAuthenticatable;
 
-/** @package Drewlabs\AuthHttpGuard */
-class User implements
-    Authenticatable,
-    AuthorizableInterface,
-    AuthAuthenticatable,
-    HasApiTokens
+class User implements Authenticatable, AuthorizableInterface, AuthAuthenticatable, HasApiTokens
 {
-    use AttributesAware, HasApiToken, Authorizable, TraitsAuthenticatable;
+    use AttributesAware;
+    use Authorizable;
+    use HasApiToken;
+    use TraitsAuthenticatable;
 
     private function __construct(array $attributes = [])
     {
@@ -29,6 +38,9 @@ class User implements
 
     public function tokenExpires()
     {
+        if (!is_object($this->accessToken)) {
+            return true;
+        }
         return $this->accessToken->expires();
     }
 

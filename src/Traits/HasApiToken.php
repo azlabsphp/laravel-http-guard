@@ -1,9 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Drewlabs package.
+ *
+ * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Drewlabs\AuthHttpGuard\Traits;
 
 use Drewlabs\AuthHttpGuard\AccessToken;
-use LogicException;
 
 /**
  * @property AccessToken $accessToken
@@ -23,7 +33,6 @@ trait HasApiToken
     /**
      * Determine if the current API token has a given scope.
      *
-     * @param  string  $ability
      * @return bool
      */
     public function tokenCan(string $ability)
@@ -44,7 +53,8 @@ trait HasApiToken
     /**
      * Set the current access token for the user.
      *
-     * @param  AccessToken  $accessToken
+     * @param AccessToken $accessToken
+     *
      * @return self
      */
     public function withAccessToken($accessToken)
@@ -56,6 +66,6 @@ trait HasApiToken
 
     public function createToken(string $name, array $abilities = ['*'])
     {
-        throw new LogicException("Current authenticatable instance cannot create a new token");
+        throw new \LogicException('Current authenticatable instance cannot create a new token');
     }
 }

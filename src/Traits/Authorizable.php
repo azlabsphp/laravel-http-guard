@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Drewlabs package.
+ *
+ * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Drewlabs\AuthHttpGuard\Traits;
 
 /**
@@ -20,7 +31,7 @@ trait Authorizable
 
     public function setAuthorizations(array $value = [])
     {
-        $this->authorizations =  $value;
+        $this->authorizations = $value;
     }
 
     public function setAuthorizationGroups(array $value = [])
@@ -30,9 +41,10 @@ trait Authorizable
 
     public function can($ability, $arguments = [])
     {
-        if (in_array('*', $this->accessToken->abilities())) {
-            return in_array($ability, $this->getAuthorizations());
+        if (\in_array('*', $this->accessToken->abilities(), true)) {
+            return \in_array($ability, $this->getAuthorizations(), true);
         }
+
         return $this->tokenCan($ability);
     }
 

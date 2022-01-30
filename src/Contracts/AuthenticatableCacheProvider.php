@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Drewlabs package.
+ *
+ * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Drewlabs\AuthHttpGuard\Contracts;
 
 use Drewlabs\Contracts\Auth\Authenticatable;
@@ -7,34 +18,28 @@ use Drewlabs\Contracts\Auth\Authenticatable;
 interface AuthenticatableCacheProvider
 {
     /**
-     * Write the authenticatable data to cache
-     * 
-     * @param string $id 
-     * @param Authenticatable $user 
-     * @return mixed 
+     * Write the authenticatable data to cache.
+     *
+     * @return mixed
      */
     public function write(string $id, Authenticatable $user);
 
     /**
-     * Read the authenticatable data from cache
-     * 
-     * @param string $id 
-     * @return Authenticatable|null
+     * Read the authenticatable data from cache.
      */
     public function read(string $id): ?Authenticatable;
 
     /**
-     * Removes the authenticatable data from cache
-     * 
-     * @param string $id 
+     * Removes the authenticatable data from cache.
+     *
      * @return mixed
      */
     public function delete(string $id);
 
     /**
-     * Removes all stales authenticatables from cache
-     * 
-     * @return mixed 
+     * Removes all stales authenticatables from cache.
+     *
+     * @return mixed
      */
     public function prune();
 }

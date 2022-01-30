@@ -1,5 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Drewlabs package.
+ *
+ * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
@@ -8,7 +19,6 @@ use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Core\Helpers\Arr;
-use Exception;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Http\Request;
 
@@ -22,7 +32,6 @@ class Guard
     private $auth;
 
     /**
-     * 
      * @var ApiTokenAuthenticatableProvider
      */
     private $provider;
@@ -30,8 +39,6 @@ class Guard
     /**
      * Create a new guard instance.
      *
-     * @param  \Illuminate\Contracts\Auth\Factory  $auth
-     * @param ApiTokenAuthenticatableProvider $provider
      * @return self
      */
     public function __construct(AuthFactory $auth, ApiTokenAuthenticatableProvider $provider)
@@ -43,7 +50,8 @@ class Guard
     /**
      * Retrieve the authenticated user for the incoming request.
      *
-     * @param  Request  $request
+     * @param Request $request
+     *
      * @return mixed
      */
     public function __invoke($request)
@@ -51,14 +59,14 @@ class Guard
         foreach (Arr::wrap(HttpGuardGlobals::guard()) as $guard) {
             if ($user = $this->auth->guard($guard)->user()) {
                 return $this->supportsTokens($user)
-                    ? $user->withAccessToken(new TransientToken)
+                    ? $user->withAccessToken(new TransientToken())
                     : $user;
             }
         }
         if ($token = $request->bearerToken()) {
             try {
                 return $this->provider->getByOAuthToken($token);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 if (
                     $e instanceof AuthenticatableNotFoundException ||
                     $e instanceof TokenExpiresException ||
@@ -74,7 +82,8 @@ class Guard
     /**
      * Determine if the tokenable model supports API tokens.
      *
-     * @param  mixed  $tokenable
+     * @param mixed $tokenable
+     *
      * @return bool
      */
     protected function supportsTokens($tokenable = null)
