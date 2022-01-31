@@ -1,6 +1,8 @@
 # Drewlabs Http
 
-Http Guard implementation that tries to get the request user from a remote server
+Http Guard implementation using oauth bearer token to authenticate request using a remote server.
+
+Note: The package is under active development as the Api can change frequently, refers to the Changelog and the Readme for any changes.
 
 ## Installation
 
