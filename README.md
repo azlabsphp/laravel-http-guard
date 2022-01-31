@@ -355,4 +355,4 @@ Note: Predis documentation can be found here [https://github.com/predis/predis]
 If your platform configuration support multiple servers for authentication, declare the list of clusters in the `config/auth.php[providers[http][hosts][cluster]]` map entry.
 
 Note:
-    When running a cluster, developper must provide a background task that call [\Drewlabs\AuthHttpGuard\AuthServerNodesChecker::setAvailableNode()] on a regular basic to update the available node in the cluster.
+    When running a cluster, developper must provide a background task that call [\Drewlabs\AuthHttpGuard\AuthServerNodesChecker::setAvailableNode()] on a regular basic to update the available node in the cluster in the cache.
