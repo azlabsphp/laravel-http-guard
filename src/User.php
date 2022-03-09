@@ -15,6 +15,7 @@ namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Traits\Authenticatable as TraitsAuthenticatable;
 use Drewlabs\AuthHttpGuard\Traits\Authorizable;
+use Drewlabs\AuthHttpGuard\Traits\ContainerAware;
 use Drewlabs\AuthHttpGuard\Traits\HasApiToken;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Contracts\Auth\AuthorizableInterface;
@@ -28,6 +29,7 @@ class User implements Authenticatable, AuthorizableInterface, AuthAuthenticatabl
     use Authorizable;
     use HasApiToken;
     use TraitsAuthenticatable;
+    use ContainerAware;
 
     private function __construct(array $attributes = [])
     {

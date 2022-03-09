@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Drewlabs\AuthHttpGuard\Traits;
 
+use Illuminate\Contracts\Auth\Access\Gate;
+
 /**
  * @property string[] $authorizations
  * @property string[] $roles
@@ -39,17 +41,41 @@ trait Authorizable
         $this->roles = $value;
     }
 
+    /**
+     * Determine if the entity has a given ability.
+     *
+     * @param  string  $ability
+     * @param  array|mixed  $arguments
+     * @return bool
+     */
     public function can($ability, $arguments = [])
     {
-        if (\in_array('*', $this->accessToken->abilities(), true)) {
-            return \in_array($ability, $this->getAuthorizations(), true);
-        }
-
-        return $this->tokenCan($ability);
+        return self::createResolver(Gate::class)()
+            ->forUser($this)
+            ->check($ability, $arguments);
     }
 
+    /**
+     * Determine if the entity does not have a given ability.
+     *
+     * @param  string  $ability
+     * @param  array|mixed  $arguments
+     * @return bool
+     */
     public function cant($ability, $arguments = [])
     {
         return !$this->can($ability, $arguments);
+    }
+
+    /**
+     * Determine if the entity does not have a given ability.
+     *
+     * @param  string  $ability
+     * @param  array|mixed  $arguments
+     * @return bool
+     */
+    public function cannot($ability, $arguments = [])
+    {
+        return $this->cant($ability, $arguments);
     }
 }
