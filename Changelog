@@ -1,0 +1,7 @@
+# Changes
+
+## [v0.2.0] 20220315
+
+- Added drewlbabs/net library as requirement
+- Modify AuthServerNodesChecker to support drewlabs/net implementation instead of Support library implementation
+- Removes dependency to support library

@@ -22,7 +22,7 @@ use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\HttpClient\Contracts\HttpClientInterface;
 use Drewlabs\HttpClient\Core\HttpClientCreator;
-use Drewlabs\Support\Traits\AttributesAware;
+use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 use GuzzleHttp\Exception\BadResponseException;
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
@@ -92,8 +92,8 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
              */
             $serialized = json_decode($response->getBody()->getContents(), true);
             $class = HttpGuardGlobals::authenticatableClass();
-            if (class_exists($class) && !$this->isAttributeAware($class)) {
-                throw new \Exception('Authenticatable class must define a createFromAttributes static method or use '.AttributesAware::class.' trait!');
+            if (!class_exists($class) || !$this->isAttributeAware($class)) {
+                throw new \Exception('Authenticatable class must define a createFromAttributes static method or use ' . AttributesAware::class . ' trait!');
             }
             $user = forward_static_call([$class, 'createFromAttributes'], Arr::except($serialized, ['accessToken']));
             if ($this->supportsTokens($user)) {
@@ -159,8 +159,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 return false;
             }
         };
-
-        return \in_array(AttributesAware::class, drewlabs_class_recusive_uses($object), true) ||
+        return \count(array_intersect([AttributesAware::class, \Drewlabs\Support\Traits\AttributesAware::class], drewlabs_class_recusive_uses($object))) > 0 ||
             (method_exists($object, 'createFromAttributes') && $is_static($object, 'createFromAttributes'));
     }
 }

@@ -20,7 +20,7 @@ use Drewlabs\AuthHttpGuard\Traits\HasApiToken;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Contracts\Auth\AuthorizableInterface;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
-use Drewlabs\Support\Traits\AttributesAware;
+use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 use Illuminate\Contracts\Auth\Authenticatable as AuthAuthenticatable;
 
 class User implements Authenticatable, AuthorizableInterface, AuthAuthenticatable, HasApiTokens

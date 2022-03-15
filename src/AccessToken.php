@@ -17,7 +17,7 @@ use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\AuthHttpGuard\Traits\ContainerAware;
 use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\Arr;
-use Drewlabs\Support\Traits\AttributesAware;
+use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 
 class AccessToken implements Token
 {
