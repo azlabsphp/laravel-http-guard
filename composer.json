@@ -47,7 +47,8 @@
     ],    
     "suggest": {
         "predis/predis": "Required to use the redis cache provider.",
-        "ext/memcached": "Required to use the memcached provider."
+        "ext/memcached": "Required to use the memcached provider.",
+        "drewlabs/net": "Required to ping available servers ^0.1.0"
     },
     "config": {
         "sort-packages": true

@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\Core\Helpers\Str;
-use Drewlabs\Support\Net\Ping\Client;
-use Drewlabs\Support\Net\Ping\Method;
 use Generator;
 use LogicException;
 
@@ -98,10 +96,13 @@ class AuthServerNodesChecker
 
     private static function isHostAvailable(string $host)
     {
-        $pingClient = new Client($host, null, 640);
-        $result = $pingClient->request(Str::contains($host, 'localhost') ? Method::FSOCKOPEN : Method::EXEC_BIN);
+        if (class_exists(\Drewlabs\Net\Ping\Client::class)) {
 
-        return false !== (bool) ($result->latency());
+            $pingClient = new \Drewlabs\Net\Ping\Client($host, null, 640);
+            $result = $pingClient->request(Str::contains($host, 'localhost') ? \Drewlabs\Net\Ping\Method::FSOCKOPEN : \Drewlabs\Net\Ping\Method::EXEC_BIN);
+            return false !== (bool) ($result->latency());
+        }
+        return true;
     }
 
     private static function writeCache(string $path, ?string $data)
