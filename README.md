@@ -16,8 +16,7 @@ developper to add the git repository to the list of vcs repository.
     // Other dependencies
     "drewlabs/contracts": "^2.0",
     "drewlabs/core-helpers": "^2.0",
-    "drewlabs/http-client": "^1.0",
-    "drewlabs/support": "^2.0"
+    "drewlabs/http-client": "^1.0"
   },
   
   "repositories":[
@@ -33,10 +32,6 @@ developper to add the git repository to the list of vcs repository.
         {
             "type": "vcs",
             "url": "git@github.com:liksoft/drewlabs-php-http-client.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:liksoft/drewlabs-php-support.git"
         },
         {
             "type": "vcs",
