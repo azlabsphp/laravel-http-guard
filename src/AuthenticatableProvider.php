@@ -16,6 +16,7 @@ namespace Drewlabs\AuthHttpGuard;
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\AuthHttpGuard\Exceptions\InvalidServerResponseException;
+use Drewlabs\AuthHttpGuard\Exceptions\MissingAccessTokenException;
 use Drewlabs\AuthHttpGuard\Exceptions\ServerException;
 use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\Auth\Authenticatable;
@@ -102,6 +103,10 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                  * @var AccessToken
                  */
                 $accessToken = AccessToken::createFromAttributes($serialized['accessToken'] ?? []);
+                // When the accessToken attribute is null we throw a new MissingAccessTokenException
+                if (null === $accessToken) {
+                    throw new MissingAccessTokenException('Access token is required for authenticatable classes that supports token');
+                }
                 $accessToken->setAccessToken($token);
                 $user->withAccessToken($accessToken);
             }
@@ -118,9 +123,10 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             if (401 === $response->getStatusCode()) {
                 throw new UnAuthorizedException($token, $response->getStatusCode());
             }
-
             return null;
         } catch (InvalidServerResponseException $e) {
+            return null;
+        } catch (MissingAccessTokenException $e) {
             return null;
         } catch (\Exception $e) {
             if (HttpGuardGlobals::usesCache()) {

@@ -72,7 +72,7 @@ class User implements
 
     public function validateAttributes()
     {
-        $hasRequiredAttributes = null !== $this->accessToken && null !== $this->getAuthIdentifier() && $this->isVerified() && null !== $this->getAuthUserName();
+        $hasRequiredAttributes = null !== $this->getAuthIdentifier() && $this->isVerified() && null !== $this->getAuthUserName();
         if (!$hasRequiredAttributes) {
             throw new InvalidServerResponseException('missing required attributes');
         }
