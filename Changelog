@@ -8,6 +8,6 @@
 
 ## [0.2.2] 2022-05-29
 
-- Added Test for User class
 - Add user attributes validation function that validates data returned by authorization server
 - Added InvalidServerResponseException which is thrown when response attributes are not valid
+- Review User::validateAttributes() implementation removing check on accessToken property
