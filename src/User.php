@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Drewlabs\AuthHttpGuard;
 
+use Drewlabs\AuthHttpGuard\Exceptions\InvalidServerResponseException;
 use Drewlabs\AuthHttpGuard\Traits\Authenticatable as TraitsAuthenticatable;
 use Drewlabs\AuthHttpGuard\Traits\Authorizable;
 use Drewlabs\AuthHttpGuard\Traits\ContainerAware;
@@ -23,7 +24,12 @@ use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 use Illuminate\Contracts\Auth\Authenticatable as AuthAuthenticatable;
 
-class User implements Authenticatable, AuthorizableInterface, AuthAuthenticatable, HasApiTokens
+/** @package Drewlabs\AuthHttpGuard */
+class User implements
+    Authenticatable,
+    AuthorizableInterface,
+    AuthAuthenticatable,
+    HasApiTokens
 {
     use AttributesAware;
     use Authorizable;
@@ -36,6 +42,19 @@ class User implements Authenticatable, AuthorizableInterface, AuthAuthenticatabl
         foreach ($attributes as $key => $value) {
             $this->attributes[$key] = $value;
         }
+        // After object attributes is filled, we check if required attributes are present
+        // on the object
+        $this->validateAttributes();
+    }
+
+    /**
+     * Returns a boolean value indicationg whether the user is verified / Not.
+     *
+     * @return bool
+     */
+    public function isVerified()
+    {
+        return boolval($this->is_verified) || boolval($this->isVerified);
     }
 
     public function tokenExpires()
@@ -49,5 +68,13 @@ class User implements Authenticatable, AuthorizableInterface, AuthAuthenticatabl
     public function tokenExpiresAt()
     {
         return $this->accessToken->expiresAt();
+    }
+
+    public function validateAttributes()
+    {
+        $hasRequiredAttributes = null !== $this->accessToken && null !== $this->getAuthIdentifier() && $this->isVerified() && null !== $this->getAuthUserName();
+        if (!$hasRequiredAttributes) {
+            throw new InvalidServerResponseException('missing required attributes');
+        }
     }
 }

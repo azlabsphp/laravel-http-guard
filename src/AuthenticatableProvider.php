@@ -15,6 +15,7 @@ namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
+use Drewlabs\AuthHttpGuard\Exceptions\InvalidServerResponseException;
 use Drewlabs\AuthHttpGuard\Exceptions\ServerException;
 use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\Auth\Authenticatable;
@@ -118,6 +119,8 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 throw new UnAuthorizedException($token, $response->getStatusCode());
             }
 
+            return null;
+        } catch (InvalidServerResponseException $e) {
             return null;
         } catch (\Exception $e) {
             if (HttpGuardGlobals::usesCache()) {

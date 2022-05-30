@@ -5,3 +5,9 @@
 - Added drewlbabs/net library as requirement
 - Modify AuthServerNodesChecker to support drewlabs/net implementation instead of Support library implementation
 - Removes dependency to support library
+
+## [0.2.1] 2022-05-29
+
+- Added Test for User class
+- Add user attributes validation function that validates data returned by authorization server
+- Added InvalidServerResponseException which is thrown when response attributes are not valid
