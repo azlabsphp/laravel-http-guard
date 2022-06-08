@@ -60,7 +60,7 @@ class ServiceProvider extends SupportServiceProvider
                     HttpGuardGlobals::authenticatableClass($model ?? (class_exists(\Drewlabs\OAuthUser\User::class) ? Drewlabs\OAuthUser\User::class : User::class));
                     HttpGuardGlobals::defaultAuthServerNode($authServerNode);
                     HttpGuardGlobals::hosts($cluster);
-                    $factory->make(HttpGuardGlobals::defaultCacheDriver());
+                    return $factory->make(HttpGuardGlobals::defaultCacheDriver());
                 },
                 function (array $attributes = [], ?string $token = null) use ($app) {
                     /**
@@ -74,8 +74,8 @@ class ServiceProvider extends SupportServiceProvider
                         $config = $app['config'];
                         $driver = $config->get('auth.guards.' . (HttpGuardGlobals::guard() ?? 'http') . '.driver');
                         $userFactoryClass = $config->get('auth.providers.' . $driver . '.userFactory');
-                        if ($userFactoryClass && class_exists($userFactoryClass)) {
-                            $userFactory = $app[$userFactoryClass];
+                        if ($userFactoryClass) {
+                            $userFactory = is_string($userFactoryClass) && class_exists($userFactoryClass) ? $app[$userFactoryClass] : $userFactoryClass;
                         }
                     }
                     if (null === $userFactory) {
