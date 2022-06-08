@@ -35,10 +35,6 @@ developper to add the git repository to the list of vcs repository.
         },
         {
             "type": "vcs",
-            "url": "git@github.com:liksoft/drewlabs-auth-laravel-passport.git"
-        },
-        {
-            "type": "vcs",
             "url": "git@github.com:liksoft/drewlabs-php-http-guard.git"
         }
     ]
