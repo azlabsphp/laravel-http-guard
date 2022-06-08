@@ -28,12 +28,12 @@ use GuzzleHttp\Exception\GuzzleException;
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 {
     /**
-     * @var AuthenticatableCacheProvider
+     * @var AuthenticatableCacheProvider|\Closure
      */
-    private $cache;
+    private $cacheProvider;
 
     /**
-     * @var HttpClientInterface
+     * @var HttpClientInterface|\Closure
      */
     private $client;
 
@@ -50,17 +50,19 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
     /**
      * 
-     * @param mixed $cache 
+     * @param AuthenticatableCacheProvider|\Closure $cacheProvider 
      * @param UserFactory|\Closure|null $userFactory 
-     * @param null|HttpClientInterface $client 
-     * @return void 
+     * @param null|HttpClientInterface|\Closure $client 
+     * @return self
      */
-    public function __construct($cache = null, $userFactory = null, ?HttpClientInterface $client = null)
+    public function __construct($cacheProvider = null, $userFactory = null, $client = null)
     {
         try {
             $this->userFactory = $userFactory ?? new DefaultUserFactory;
-            $this->cache = $cache ?? ArrayCacheProvider::load();
-            $this->client = $client ?? HttpClientCreator::createHttpClient(AuthServerNodesChecker::getAuthServerNode());
+            $this->cacheProvider = $cacheProvider ?? ArrayCacheProvider::load();
+            $this->client = $client ?? function () {
+                return HttpClientCreator::createHttpClient(AuthServerNodesChecker::getAuthServerNode());
+            };
         } catch (\RuntimeException $e) {
             $this->useCache = true;
         }
@@ -101,9 +103,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     public function revokeOAuthToken(string $token)
     {
         try {
-            $this->client
-                ->withBearerToken($token)
-                ->get(HttpGuardGlobals::revokePath());
+            $this->getClient()->withBearerToken($token)->get(HttpGuardGlobals::revokePath());
         } catch (BadResponseException $e) {
             $response = $e->getResponse();
             if (401 === $response->getStatusCode()) {
@@ -122,9 +122,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             return $this->getAuthenticatableFromCache($token);
         }
         try {
-            $response = $this->client
-                ->withBearerToken($token)
-                ->get(HttpGuardGlobals::userPath());
+            $response = $this->getClient()->withBearerToken($token)->get(HttpGuardGlobals::userPath());
             // We call the user factory create() method to build the current user from the 
             // response body of the HTTP request
             if (is_callable($this->userFactory)) {
@@ -166,9 +164,21 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
      */
     public function getCacheProvider()
     {
-        if (is_a($this->cache, \Closure::class)) {
-            return ($this->cache)();
+        if (is_a($this->cacheProvider, \Closure::class)) {
+            return ($this->cacheProvider)();
         }
-        return $this->cache;
+        return $this->cacheProvider;
+    }
+
+    /**
+     * 
+     * @return HttpClientInterface 
+     */
+    public function getClient()
+    {
+        if (is_a($this->client, \Closure::class)) {
+            return ($this->client)();
+        }
+        return $this->client;
     }
 }

@@ -15,6 +15,7 @@ namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\AuthHttpGuard\Contracts\UserFactory;
+use Drewlabs\HttpClient\Core\HttpClientCreator;
 use Illuminate\Auth\RequestGuard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider as SupportServiceProvider;
@@ -90,6 +91,9 @@ class ServiceProvider extends SupportServiceProvider
                     }
 
                     return is_callable($userFactory) ? ($userFactory)($attributes, $token) : $userFactory->create($attributes, $token);
+                },
+                function () {
+                    return HttpClientCreator::createHttpClient(AuthServerNodesChecker::getAuthServerNode());
                 }
             );
         });
