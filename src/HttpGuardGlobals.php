@@ -32,21 +32,21 @@ class HttpGuardGlobals
      *
      * @var string
      */
-    private static $DEFAULT_AUTH_SERVER_NODE = 'http://localhost:4300';
+    private static $DEFAULT_AUTH_SERVER_NODE = 'http://localhost:3000';
 
     /**
      * Route to users resource.
      *
      * @var string
      */
-    private static $USER_PATH = '/auth/v2/user';
+    private static $USER_PATH = '/api/v2/user';
 
     /**
      * Route to users resource.
      *
      * @var string
      */
-    private static $LOGOUT_PATH = '/auth/v2/logout';
+    private static $LOGOUT_PATH = '/api/v2/logout';
 
     /**
      * @var bool
@@ -68,7 +68,7 @@ class HttpGuardGlobals
     /**
      * @var string
      */
-    private static $DEFAULT_GUARD_DRIVER = 'web';
+    private static $DEFAULT_GUARDS = 'web';
 
     /**
      * @var string
@@ -82,6 +82,10 @@ class HttpGuardGlobals
      */
     private static $DEFAULT_CACHE_DRIVER = 'array';
 
+    /**
+     * 
+     * @var (null|array)[]
+     */
     private static $MEMCACHED_CONFIG = [
         'persistent_id' => null,
         'options' => [
@@ -101,6 +105,12 @@ class HttpGuardGlobals
      * @var string
      */
     private static $CACHE_PREFIX = 'drewlabs_http_guard_';
+
+    /**
+     * 
+     * @var string
+     */
+    private static $GUARD = 'http';
 
     /**
      * @param array<int,array<string,string|bool>> $nodes
@@ -206,13 +216,13 @@ class HttpGuardGlobals
      *
      * @return string
      */
-    public static function guard($guard = null)
+    public static function defaultGuards($guard = null)
     {
         if (null !== $guard) {
-            static::$DEFAULT_GUARD_DRIVER = $guard;
+            static::$DEFAULT_GUARDS = $guard;
         }
 
-        return static::$DEFAULT_GUARD_DRIVER;
+        return static::$DEFAULT_GUARDS;
     }
 
     public static function authenticatableClass(?string $authClass = null)
@@ -260,5 +270,19 @@ class HttpGuardGlobals
         }
 
         return static::$DEFAULT_AUTH_SERVER_NODE;
+    }
+
+    /**
+     * Set/Get the name of the HTTP guard instance
+     * 
+     * @param null|string $name 
+     * @return string 
+     */
+    public static function guard(?string $name = null)
+    {
+        if (null !== $name) {
+            static::$GUARD = $name;
+        }
+        return static::$GUARD;
     }
 }

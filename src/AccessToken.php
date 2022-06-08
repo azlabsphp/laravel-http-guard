@@ -67,19 +67,28 @@ class AccessToken implements Token
         return !$this->can($ability);
     }
 
+    /**
+     * Checks whether the token has expire
+     * 
+     * @return bool 
+     */
     public function expires()
     {
-        $expires_at = $this->expiresAt();
-        if (null === $expires_at) {
+        $expiresAt = $this->expiresAt();
+        if (null === $expiresAt) {
             return true;
         }
-
-        return !drewlabs_core_datetime_is_future(new \DateTimeImmutable($expires_at));
+        return !drewlabs_core_datetime_is_future(new \DateTimeImmutable($expiresAt));
     }
 
+    /**
+     * Returns the expiration date of the token
+     * 
+     * @return ?string 
+     */
     public function expiresAt()
     {
-        return $this->expires_at;
+        return isset($this->expires_at) ? $this->expires_at : (isset($this->expiresAt) ? $this->expiresAt : null);
     }
 
     public function setAccessToken($value)

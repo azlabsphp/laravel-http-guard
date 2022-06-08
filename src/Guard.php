@@ -15,6 +15,7 @@ namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\AuthHttpGuard\Exceptions\AuthenticatableNotFoundException;
+use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
@@ -58,7 +59,7 @@ class Guard
     public function __invoke($request)
     {
         try {
-            foreach (Arr::wrap(HttpGuardGlobals::guard()) as $guard) {
+            foreach (Arr::wrap(HttpGuardGlobals::defaultGuards()) as $guard) {
                 if ($user = $this->auth->guard($guard)->user()) {
                     return $this->supportsTokens($user)
                         ? $user->withAccessToken(new TransientToken())
@@ -75,7 +76,8 @@ class Guard
                 if (
                     $e instanceof AuthenticatableNotFoundException ||
                     $e instanceof TokenExpiresException ||
-                    $e instanceof UnAuthorizedException
+                    $e instanceof UnAuthorizedException ||
+                    $e instanceof ServerBadResponseException
                 ) {
                     return null;
                 }

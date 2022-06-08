@@ -19,10 +19,17 @@ interface ApiTokenAuthenticatableProvider
 {
     /**
      * Fetch the authenticatable using user provided token.
+     * 
+     * @param string $token 
+     * @return null|Authenticatable 
      */
     public function getByOAuthToken(string $token): ?Authenticatable;
 
     /**
+     * Revoke the connected user auth token
+     * 
+     * @param string $token 
+     * 
      * @return void
      */
     public function revokeOAuthToken(string $token);

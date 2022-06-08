@@ -5,7 +5,7 @@ namespace Drewlabs\AuthHttpGuard\Exceptions;
 
 use Exception;
 
-class InvalidServerResponseException extends Exception
+class ServerBadResponseException extends Exception
 {
 
 }

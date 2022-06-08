@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Drewlabs\AuthHttpGuard;
 
-use Drewlabs\AuthHttpGuard\Exceptions\InvalidServerResponseException;
+use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\AuthHttpGuard\Traits\Authenticatable as TraitsAuthenticatable;
 use Drewlabs\AuthHttpGuard\Traits\Authorizable;
 use Drewlabs\AuthHttpGuard\Traits\ContainerAware;
@@ -74,7 +74,7 @@ class User implements
     {
         $hasRequiredAttributes = null !== $this->getAuthIdentifier() && $this->isVerified() && null !== $this->getAuthUserName();
         if (!$hasRequiredAttributes) {
-            throw new InvalidServerResponseException('missing required attributes');
+            throw new ServerBadResponseException('missing required attributes');
         }
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-use Drewlabs\AuthHttpGuard\Exceptions\InvalidServerResponseException;
+use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\AuthHttpGuard\User;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use PHPUnit\Framework\TestCase;
@@ -68,7 +68,7 @@ class UserTest extends TestCase
 
     public function test_user_constructor_passes_for_valid_attributes()
     {
-        $this->expectException(InvalidServerResponseException::class);
+        $this->expectException(ServerBadResponseException::class);
         $attributes = [
             'version' => 'v1.0.0',
             'id' => 1,

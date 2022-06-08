@@ -15,17 +15,15 @@ namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
-use Drewlabs\AuthHttpGuard\Exceptions\InvalidServerResponseException;
-use Drewlabs\AuthHttpGuard\Exceptions\MissingAccessTokenException;
+use Drewlabs\AuthHttpGuard\Contracts\UserFactory;
+use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\AuthHttpGuard\Exceptions\ServerException;
 use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\Auth\Authenticatable;
-use Drewlabs\Contracts\OAuth\HasApiTokens;
-use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\HttpClient\Contracts\HttpClientInterface;
 use Drewlabs\HttpClient\Core\HttpClientCreator;
-use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\GuzzleException;
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 {
@@ -44,11 +42,25 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
      */
     private $useCache = false;
 
-    public function __construct(?AuthenticatableCacheProvider $cache = null)
+    /**
+     * 
+     * @var UserFactory|\Closure
+     */
+    private $userFactory;
+
+    /**
+     * 
+     * @param mixed $cache 
+     * @param UserFactory|\Closure|null $userFactory 
+     * @param null|HttpClientInterface $client 
+     * @return void 
+     */
+    public function __construct($cache = null, $userFactory = null, ?HttpClientInterface $client = null)
     {
-        $this->cache = $cache ?? ArrayCacheProvider::load();
         try {
-            $this->client = HttpClientCreator::createHttpClient(AuthServerNodesChecker::getAuthServerNode());
+            $this->userFactory = $userFactory ?? new DefaultUserFactory;
+            $this->cache = $cache ?? ArrayCacheProvider::load();
+            $this->client = $client ?? HttpClientCreator::createHttpClient(AuthServerNodesChecker::getAuthServerNode());
         } catch (\RuntimeException $e) {
             $this->useCache = true;
         }
@@ -62,6 +74,30 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         }
     }
 
+    /**
+     * Set the user factory object to use to creates the authenticatable instance
+     * 
+     * @param UserFactory $userFactory 
+     * @return self 
+     */
+    public function setUserFactory(UserFactory $userFactory)
+    {
+        if (null !== $userFactory) {
+            $this->userFactory = $userFactory;
+        }
+        return $this;
+    }
+
+    /**
+     * Revoke the connected user auth token
+     * 
+     * @param string $token 
+     * @return void 
+     * @throws UnAuthorizedException 
+     * @throws BadResponseException 
+     * @throws ServerException 
+     * @throws GuzzleException 
+     */
     public function revokeOAuthToken(string $token)
     {
         try {
@@ -89,31 +125,16 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             $response = $this->client
                 ->withBearerToken($token)
                 ->get(HttpGuardGlobals::userPath());
-            /**
-             * @var array
-             */
-            $serialized = json_decode($response->getBody()->getContents(), true);
-            $class = HttpGuardGlobals::authenticatableClass();
-            if (!class_exists($class) || !$this->isAttributeAware($class)) {
-                throw new \Exception('Authenticatable class must define a createFromAttributes static method or use ' . AttributesAware::class . ' trait!');
-            }
-            $user = forward_static_call([$class, 'createFromAttributes'], Arr::except($serialized, ['accessToken']));
-            if ($this->supportsTokens($user)) {
-                /**
-                 * @var AccessToken
-                 */
-                $accessToken = AccessToken::createFromAttributes($serialized['accessToken'] ?? []);
-                // When the accessToken attribute is null we throw a new MissingAccessTokenException
-                if (null === $accessToken) {
-                    throw new MissingAccessTokenException('Access token is required for authenticatable classes that supports token');
-                }
-                $accessToken->setAccessToken($token);
-                $user->withAccessToken($accessToken);
+            // We call the user factory create() method to build the current user from the 
+            // response body of the HTTP request
+            if (is_callable($this->userFactory)) {
+                $user = ($this->userFactory)(json_decode($response->getBody()->getContents(), true), $token);
+            } else {
+                $user = $this->userFactory->create(json_decode($response->getBody()->getContents(), true), $token);
             }
             if (HttpGuardGlobals::usesCache()) {
-                $this->cache->write($token, $user);
+                $this->getCacheProvider()->write($token, $user);
             }
-
             return $user;
         } catch (BadResponseException $e) {
             if (!$e->hasResponse()) {
@@ -124,9 +145,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 throw new UnAuthorizedException($token, $response->getStatusCode());
             }
             return null;
-        } catch (InvalidServerResponseException $e) {
-            return null;
-        } catch (MissingAccessTokenException $e) {
+        } catch (ServerBadResponseException $e) {
             return null;
         } catch (\Exception $e) {
             if (HttpGuardGlobals::usesCache()) {
@@ -138,37 +157,18 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
     public function getAuthenticatableFromCache(string $token)
     {
-        return $this->cache->read($token);
-    }
-
-    public function getCacheProvider()
-    {
-        return $this->cache;
+        return $this->getCacheProvider()->read($token);
     }
 
     /**
-     * Determine if the tokenable model supports API tokens.
-     *
-     * @param mixed $tokenable
-     *
-     * @return bool
+     * 
+     * @return AuthenticatableCacheProvider 
      */
-    private function supportsTokens($tokenable = null)
+    public function getCacheProvider()
     {
-        return $tokenable instanceof HasApiTokens || (method_exists($tokenable, 'token') && method_exists($tokenable, 'withAccessToken'));
-    }
-
-    private function isAttributeAware($object)
-    {
-        $object = \is_object($object) ? \get_class($object) : $object;
-        $is_static = static function ($object, $method) {
-            try {
-                return (new \ReflectionMethod($object, $method))->isStatic();
-            } catch (\ReflectionException $e) {
-                return false;
-            }
-        };
-        return \count(array_intersect([AttributesAware::class, \Drewlabs\Support\Traits\AttributesAware::class], drewlabs_class_recusive_uses($object))) > 0 ||
-            (method_exists($object, 'createFromAttributes') && $is_static($object, 'createFromAttributes'));
+        if (is_a($this->cache, \Closure::class)) {
+            return ($this->cache)();
+        }
+        return $this->cache;
     }
 }

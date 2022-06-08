@@ -14,9 +14,11 @@ declare(strict_types=1);
 namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
+use Drewlabs\AuthHttpGuard\Contracts\UserFactory;
 use Illuminate\Auth\RequestGuard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider as SupportServiceProvider;
+use InvalidArgumentException;
 
 class ServiceProvider extends SupportServiceProvider
 {
@@ -43,19 +45,53 @@ class ServiceProvider extends SupportServiceProvider
     public function register()
     {
         $this->app->bind(ApiTokenAuthenticatableProvider::class, static function ($app) {
-            $factory = new CacheProviderFactory();
-            $config = $app['config'];
-            // Load memcached configurations
-            HttpGuardGlobals::forMemcached($config['database.stores.memcached']);
-            // Load user configuration
-            $provider = $config->get('auth.guards.http.driver');
-            $model = $config->get('auth.providers.'.$provider.'.model');
-            $authServerNode = $config->get('auth.providers.'.$provider.'.hosts.default');
-            $cluster = $config->get('auth.providers.'.$provider.'.hosts.cluster');
-            HttpGuardGlobals::authenticatableClass($model ?? (class_exists(\Drewlabs\OAuthUser\User::class) ? Drewlabs\OAuthUser\User::class : User::class));
-            HttpGuardGlobals::defaultAuthServerNode($authServerNode); //
-            HttpGuardGlobals::hosts($cluster);
-            return new AuthenticatableProvider($factory->make(HttpGuardGlobals::defaultCacheDriver()));
+            return new AuthenticatableProvider(
+                function () use ($app) {
+                    $factory = new CacheProviderFactory();
+                    $config = $app['config'];
+                    // Load memcached configurations
+                    HttpGuardGlobals::forMemcached($config['database.stores.memcached']);
+                    // Load user configuration
+                    $name = HttpGuardGlobals::guard() ?? 'http';
+                    $driver = $config->get('auth.guards.' . $name . '.driver');
+                    $model = $config->get('auth.providers.' . $driver . '.model');
+                    $authServerNode = $config->get('auth.providers.' . $driver . '.hosts.default');
+                    $cluster = $config->get('auth.providers.' . $driver . '.hosts.cluster');
+                    HttpGuardGlobals::authenticatableClass($model ?? (class_exists(\Drewlabs\OAuthUser\User::class) ? Drewlabs\OAuthUser\User::class : User::class));
+                    HttpGuardGlobals::defaultAuthServerNode($authServerNode);
+                    HttpGuardGlobals::hosts($cluster);
+                    $factory->make(HttpGuardGlobals::defaultCacheDriver());
+                },
+                function (array $attributes = [], ?string $token = null) use ($app) {
+                    /**
+                     * @var UserFactory
+                     */
+                    $userFactory = null;
+                    if ($app->bound(UserFactory::class)) {
+                        $userFactory = $app[UserFactory::class];
+                    }
+                    if (null === $userFactory) {
+                        $config = $app['config'];
+                        $driver = $config->get('auth.guards.' . (HttpGuardGlobals::guard() ?? 'http') . '.driver');
+                        $userFactoryClass = $config->get('auth.providers.' . $driver . '.userFactory');
+                        if ($userFactoryClass && class_exists($userFactoryClass)) {
+                            $userFactory = $app[$userFactoryClass];
+                        }
+                    }
+                    if (null === $userFactory) {
+                        /**
+                         * @var UserFactory
+                         */
+                        $userFactory = $app[DefaultUserFactory::class];
+                    }
+
+                    if (!is_a($userFactory, UserFactory::class) && !is_callable($userFactory)) {
+                        throw new InvalidArgumentException('User Factory must be an istance of ' . UserFactory::class . ' or callable, instance of ' . (is_object($userFactory) && !is_null($userFactory) ? get_class($userFactory) : gettype($userFactory)));
+                    }
+
+                    return is_callable($userFactory) ? ($userFactory)($attributes, $token) : $userFactory->create($attributes, $token);
+                }
+            );
         });
     }
 

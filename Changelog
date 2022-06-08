@@ -11,3 +11,11 @@
 - Add user attributes validation function that validates data returned by authorization server
 - Added InvalidServerResponseException which is thrown when response attributes are not valid
 - Review User::validateAttributes() implementation removing check on accessToken property
+
+## [0.3.0] 2022-06-08
+
+- Renamed InvalidServerResponseException to ServerBadResponseException
+- Add a global variable to use to be used in configuration of guard name
+- Rename the method to configure the default guard from guard() to defaultGuards()
+- Added a UserFactory interface an a DefaultUserFactory implementation
+- Updated AuthenticatableProvider to use callable as cache provider and user factory classes
