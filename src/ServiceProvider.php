@@ -48,51 +48,42 @@ class ServiceProvider extends SupportServiceProvider
         $this->app->bind(ApiTokenAuthenticatableProvider::class, static function ($app) {
             return new AuthenticatableProvider(
                 function () use ($app) {
-                    $factory = new CacheProviderFactory();
+                    //#region Set global cache configuration
                     $config = $app['config'];
-                    // Load memcached configurations
                     HttpGuardGlobals::forMemcached($config['database.stores.memcached']);
-                    // Load user configuration
-                    $name = HttpGuardGlobals::guard() ?? 'http';
-                    $driver = $config->get('auth.guards.' . $name . '.driver');
-                    $model = $config->get('auth.providers.' . $driver . '.model');
-                    $authServerNode = $config->get('auth.providers.' . $driver . '.hosts.default');
-                    $cluster = $config->get('auth.providers.' . $driver . '.hosts.cluster');
-                    HttpGuardGlobals::authenticatableClass($model ?? (class_exists(\Drewlabs\OAuthUser\User::class) ? Drewlabs\OAuthUser\User::class : User::class));
-                    HttpGuardGlobals::defaultAuthServerNode($authServerNode);
-                    HttpGuardGlobals::hosts($cluster);
-                    return $factory->make(HttpGuardGlobals::defaultCacheDriver());
+                    //#endregion Set global cache configuration
+                    return $app[CacheProviderFactory::class]->make(HttpGuardGlobals::defaultCacheDriver());
                 },
                 function (array $attributes = [], ?string $token = null) use ($app) {
-                    /**
-                     * @var UserFactory
-                     */
+                    //#region Define user global configurations
+                    $config = $app['config'];
+                    $driver = $config->get('auth.guards.' . (HttpGuardGlobals::guard() ?? 'http') . '.driver');
+                    $model = $config->get('auth.providers.' . $driver . '.model');
+                    HttpGuardGlobals::authenticatableClass($model ?? (class_exists(\Drewlabs\OAuthUser\User::class) ? Drewlabs\OAuthUser\User::class : User::class));
+                    //#endregion Define user global configurations
                     $userFactory = null;
                     if ($app->bound(UserFactory::class)) {
                         $userFactory = $app[UserFactory::class];
                     }
                     if (null === $userFactory) {
-                        $config = $app['config'];
-                        $driver = $config->get('auth.guards.' . (HttpGuardGlobals::guard() ?? 'http') . '.driver');
                         $userFactoryClass = $config->get('auth.providers.' . $driver . '.userFactory');
                         if ($userFactoryClass) {
                             $userFactory = is_string($userFactoryClass) && class_exists($userFactoryClass) ? $app[$userFactoryClass] : $userFactoryClass;
                         }
                     }
                     if (null === $userFactory) {
-                        /**
-                         * @var UserFactory
-                         */
                         $userFactory = $app[DefaultUserFactory::class];
                     }
-
                     if (!is_a($userFactory, UserFactory::class) && !is_callable($userFactory)) {
                         throw new InvalidArgumentException('User Factory must be an istance of ' . UserFactory::class . ' or callable, instance of ' . (is_object($userFactory) && !is_null($userFactory) ? get_class($userFactory) : gettype($userFactory)));
                     }
-
                     return is_callable($userFactory) ? ($userFactory)($attributes, $token) : $userFactory->create($attributes, $token);
                 },
-                function () {
+                function () use ($app) {
+                    $config = $app['config'];
+                    $driver = $config->get('auth.guards.' . (HttpGuardGlobals::guard() ?? 'http') . '.driver');
+                    HttpGuardGlobals::defaultAuthServerNode($config->get('auth.providers.' . $driver . '.hosts.default'));
+                    HttpGuardGlobals::hosts($config->get('auth.providers.' . $driver . '.hosts.cluster', []));
                     return HttpClientCreator::createHttpClient(AuthServerNodesChecker::getAuthServerNode());
                 }
             );

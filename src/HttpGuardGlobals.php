@@ -32,7 +32,7 @@ class HttpGuardGlobals
      *
      * @var string
      */
-    private static $DEFAULT_AUTH_SERVER_NODE = 'http://localhost:3000';
+    private static $DEFAULT_AUTH_SERVER_NODE = null;
 
     /**
      * Route to users resource.
