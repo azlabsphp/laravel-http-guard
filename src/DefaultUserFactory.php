@@ -21,7 +21,7 @@ class DefaultUserFactory implements UserFactory
             /**
              * @var AccessToken
              */
-            $accessToken = AccessToken::createFromAttributes($serialized['accessToken'] ?? []);
+            $accessToken = AccessToken::createFromAttributes($attributes['accessToken'] ?? []);
             // When the accessToken attribute is null we throw a new ServerBadResponseException
             if (null === $accessToken) {
                 throw new ServerBadResponseException('Access token is required for authenticatable classes that supports token');
