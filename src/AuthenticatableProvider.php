@@ -24,6 +24,7 @@ use Drewlabs\HttpClient\Contracts\HttpClientInterface;
 use Drewlabs\HttpClient\Core\HttpClientCreator;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Contracts\Auth\Authenticatable as BaseAuthenticatable;
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 {
@@ -49,6 +50,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     private $userFactory;
 
     /**
+     * Creates authenticatable provider instance
      * 
      * @param AuthenticatableCacheProvider|\Closure $cacheProvider 
      * @param UserFactory|\Closure|null $userFactory 
@@ -125,12 +127,10 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             $response = $this->getClient()->withBearerToken($token)->get(HttpGuardGlobals::userPath());
             // We call the user factory create() method to build the current user from the 
             // response body of the HTTP request
-            if (is_callable($this->userFactory)) {
-                $user = ($this->userFactory)(json_decode($response->getBody()->getContents(), true), $token);
-            } else {
-                $user = $this->userFactory->create(json_decode($response->getBody()->getContents(), true), $token);
-            }
-            if (HttpGuardGlobals::usesCache()) {
+            $user = is_callable($this->userFactory) ?
+                ($this->userFactory)(json_decode($response->getBody()->getContents(), true), $token)
+                : $this->userFactory->create(json_decode($response->getBody()->getContents(), true), $token);
+            if (HttpGuardGlobals::usesCache() && $this->isAuthenticatable($user)) {
                 $this->getCacheProvider()->write($token, $user);
             }
             return $user;
@@ -180,5 +180,17 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             return ($this->client)();
         }
         return $this->client;
+    }
+
+    /**
+     * Returns true if the $instance is instance of authenticatable class 
+     * 
+     * @param c|Authenticatable $instance 
+     * @return bool 
+     */
+    private function isAuthenticatable($instance)
+    {
+        return is_a($instance, BaseAuthenticatable::class, true) ||
+            is_a($instance, Authenticatable::class, true);
     }
 }
