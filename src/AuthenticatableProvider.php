@@ -72,7 +72,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
     public function __destruct()
     {
-        if (($cache = $this->getCacheProvider()) instanceof ArrayCacheProvider) {
+        if (($cache = $this->cacheProvider) instanceof ArrayCacheProvider) {
             $cache->prune();
             ArrayCacheProvider::dump($cache);
         }
@@ -165,7 +165,9 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     public function getCacheProvider()
     {
         if (is_a($this->cacheProvider, \Closure::class)) {
-            return ($this->cacheProvider)();
+            // We resolve the instance from the closure so that the next calls
+            // uses the provideded instance
+            $this->cacheProvider =  ($this->cacheProvider)();
         }
         return $this->cacheProvider;
     }
