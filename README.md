@@ -178,9 +178,27 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
+use Illuminate\Contracts\Auth\Factory as Auth;
 
-class Authenticate extends BaseMiddleware
+class Authenticate
 {
+
+
+    /**
+     * @var Factory
+     */
+    protected $auth;
+
+    /**
+     * Create a new BaseMiddleware instance.
+     *
+     * @param Auth $auth
+     */
+    public function __construct(Auth $auth)
+    {
+        $this->auth = $auth;
+    }
+
 
     /**
      * Handle an incoming request.
