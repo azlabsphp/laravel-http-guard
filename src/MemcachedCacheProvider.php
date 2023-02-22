@@ -38,14 +38,14 @@ class MemcachedCacheProvider implements AuthenticatableCacheProvider
     public function write(string $id, Authenticatable $user)
     {
         $expiresAt = $user instanceof User ? new \DateTimeImmutable($user->tokenExpiresAt()) : null;
-        $expiration = $expiresAt ? drewlabs_core_datetime_secs_diff($expiresAt, drewlabs_core_datetime_now()) : null;
-        if ($expiration && ($expiration <= 0)) {
+        $expires = $expiresAt ? drewlabs_core_datetime_secs_diff($expiresAt, drewlabs_core_datetime_now()) : null;
+        if ($expires && ($expires <= 0)) {
             return;
         }
         if ($this->exists($id)) {
-            $this->delete($id, serialize($user), $expiration);
+            $this->delete($id, serialize($user), $expires);
         }
-        $this->client->add($this->resolveKey($id), serialize($user), $expiration);
+        $this->client->add($this->resolveKey($id), serialize($user), $expires);
     }
 
     public function read(string $id): ?Authenticatable

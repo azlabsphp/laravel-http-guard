@@ -47,11 +47,7 @@ class RedisCacheProvider implements AuthenticatableCacheProvider
             $this->client->del($id);
         }
         $expiresAt = $user instanceof User ? new \DateTimeImmutable($user->tokenExpiresAt()) : null;
-        $expires = $expiresAt ?
-            drewlabs_core_datetime_secs_diff(
-                $expiresAt,
-                drewlabs_core_datetime_now()
-            ) : null;
+        $expires = $expiresAt ? drewlabs_core_datetime_secs_diff($expiresAt, drewlabs_core_datetime_now()) : null;
         if ($expires && ($expires <= 0)) {
             return;
         }
