@@ -21,7 +21,7 @@ class HttpGuardGlobals
     /**
      * @var string
      */
-    private static $AVAILABLE_NODE_SERVER_CACHE_PATH = __DIR__.'/../cache/node.sock';
+    private static $AVAILABLE_NODE_SERVER_CACHE_PATH = __DIR__ . '/../cache/node.sock';
 
     /**
      * @var array<string,string|array<int,string>>
@@ -94,9 +94,7 @@ class HttpGuardGlobals
      */
     private static $MEMCACHED_CONFIG = [
         'persistent_id' => null,
-        'options' => [
-            // \Memcached::OPT_CONNECT_TIMEOUT => 2000,
-        ],
+        'options' => [ /* \Memcached::OPT_CONNECT_TIMEOUT => 2000, */],
         'servers' => [
             [
                 'host' => '127.0.0.1',

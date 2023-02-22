@@ -19,3 +19,8 @@
 - Rename the method to configure the default guard from guard() to defaultGuards()
 - Added a UserFactory interface an a DefaultUserFactory implementation
 - Updated AuthenticatableProvider to use callable as cache provider and user factory classes
+
+
+## 
+
+- Review Array cache implementation details to fix issue with fread with 0 as parameter failed
