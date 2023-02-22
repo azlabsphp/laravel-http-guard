@@ -1,12 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Drewlabs package.
+ *
+ * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\UserFactory;
 use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
+use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Core\Helpers\Arr;
-use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 
 class DefaultUserFactory implements UserFactory
 {
@@ -14,7 +25,7 @@ class DefaultUserFactory implements UserFactory
     {
         $class = HttpGuardGlobals::authenticatableClass();
         if (!class_exists($class) || !$this->isAttributeAware($class)) {
-            throw new \Exception('Authenticatable class must define a createFromAttributes static method or use ' . AttributesAware::class . ' trait!');
+            throw new \Exception('Authenticatable class must define a createFromAttributes static method or use '.AttributesAware::class.' trait!');
         }
         $user = forward_static_call([$class, 'createFromAttributes'], Arr::except($attributes, ['accessToken']));
         if ($this->supportsTokens($user)) {
@@ -29,10 +40,9 @@ class DefaultUserFactory implements UserFactory
             $accessToken->setAccessToken($token);
             $user->withAccessToken($accessToken);
         }
+
         return $user;
     }
-
-
 
     /**
      * Determine if the tokenable model supports API tokens.
@@ -56,6 +66,7 @@ class DefaultUserFactory implements UserFactory
                 return false;
             }
         };
+
         return \count(array_intersect([AttributesAware::class, \Drewlabs\Support\Traits\AttributesAware::class], drewlabs_class_recusive_uses($object))) > 0 ||
             (method_exists($object, 'createFromAttributes') && $isStatic($object, 'createFromAttributes'));
     }

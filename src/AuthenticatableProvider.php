@@ -45,25 +45,25 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     private $useCache = false;
 
     /**
-     * 
      * @var UserFactory|\Closure
      */
     private $userFactory;
 
     /**
-     * Creates authenticatable provider instance
-     * 
-     * @param AuthenticatableCacheProvider|\Closure $cacheProvider 
-     * @param UserFactory|\Closure|null $userFactory 
-     * @param null|HttpClientInterface|\Closure $client 
+     * Creates authenticatable provider instance.
+     *
+     * @param AuthenticatableCacheProvider|\Closure $cacheProvider
+     * @param UserFactory|\Closure|null             $userFactory
+     * @param HttpClientInterface|\Closure|null     $client
+     *
      * @return self
      */
     public function __construct($cacheProvider = null, $userFactory = null, $client = null)
     {
         try {
-            $this->userFactory = $userFactory ?? new DefaultUserFactory;
+            $this->userFactory = $userFactory ?? new DefaultUserFactory();
             $this->cacheProvider = $cacheProvider ?? ArrayCacheProvider::load();
-            $this->client = $client ?? function () {
+            $this->client = $client ?? static function () {
                 return HttpClientCreator::createHttpClient(AuthServerNodesChecker::getAuthServerNode());
             };
         } catch (\RuntimeException $e) {
@@ -80,28 +80,28 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     }
 
     /**
-     * Set the user factory object to use to creates the authenticatable instance
-     * 
-     * @param UserFactory $userFactory 
-     * @return self 
+     * Set the user factory object to use to creates the authenticatable instance.
+     *
+     * @return self
      */
     public function setUserFactory(UserFactory $userFactory)
     {
         if (null !== $userFactory) {
             $this->userFactory = $userFactory;
         }
+
         return $this;
     }
 
     /**
-     * Revoke the connected user auth token
-     * 
-     * @param string $token 
-     * @return void 
-     * @throws UnAuthorizedException 
-     * @throws BadResponseException 
-     * @throws ServerException 
-     * @throws GuzzleException 
+     * Revoke the connected user auth token.
+     *
+     * @throws UnAuthorizedException
+     * @throws BadResponseException
+     * @throws ServerException
+     * @throws GuzzleException
+     *
+     * @return void
      */
     public function revokeOAuthToken(string $token)
     {
@@ -126,14 +126,15 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         }
         try {
             $response = $this->getClient()->withBearerToken($token)->get(HttpGuardGlobals::userPath());
-            // We call the user factory create() method to build the current user from the 
+            // We call the user factory create() method to build the current user from the
             // response body of the HTTP request
-            $user = is_callable($this->userFactory) ?
+            $user = \is_callable($this->userFactory) ?
                 ($this->userFactory)(json_decode($response->getBody()->getContents(), true), $token)
                 : $this->userFactory->create(json_decode($response->getBody()->getContents(), true), $token);
             if (HttpGuardGlobals::usesCache() && $this->isAuthenticatable($user)) {
                 $this->getCacheProvider()->write($token, $user);
             }
+
             return $user;
         } catch (BadResponseException $e) {
             if (!$e->hasResponse()) {
@@ -143,6 +144,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             if (401 === $response->getStatusCode()) {
                 throw new UnAuthorizedException($token, $response->getStatusCode());
             }
+
             return null;
         } catch (ServerBadResponseException $e) {
             return null;
@@ -157,7 +159,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     public function getAuthenticatableFromCache(string $token)
     {
         $cacheProvider = $this->getCacheProvider();
-        $user =  $cacheProvider->read($token);
+        $user = $cacheProvider->read($token);
         if (($user instanceof User) && ($user->tokenExpires())) {
             // Case the token has expired, we remove the authenticatable instance from cache
             $cacheProvider->delete($token);
@@ -166,36 +168,37 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     }
 
     /**
-     * 
-     * @return AuthenticatableCacheProvider 
+     * @return AuthenticatableCacheProvider
      */
     public function getCacheProvider()
     {
         if (is_a($this->cacheProvider, \Closure::class)) {
             // We resolve the instance from the closure so that the next calls
             // uses the provideded instance
-            $this->cacheProvider =  ($this->cacheProvider)();
+            $this->cacheProvider = ($this->cacheProvider)();
         }
+
         return $this->cacheProvider;
     }
 
     /**
-     * 
-     * @return HttpClientInterface 
+     * @return HttpClientInterface
      */
     public function getClient()
     {
         if (is_a($this->client, \Closure::class)) {
             return ($this->client)();
         }
+
         return $this->client;
     }
 
     /**
-     * Returns true if the $instance is instance of authenticatable class 
-     * 
-     * @param c|Authenticatable $instance 
-     * @return bool 
+     * Returns true if the $instance is instance of authenticatable class.
+     *
+     * @param Authenticatable $instance
+     *
+     * @return bool
      */
     private function isAuthenticatable($instance)
     {

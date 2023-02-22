@@ -25,7 +25,6 @@ class MemcachedCacheProvider implements AuthenticatableCacheProvider
     private $client;
 
     /**
-     * 
      * @var string
      */
     private $prefix;
@@ -55,6 +54,7 @@ class MemcachedCacheProvider implements AuthenticatableCacheProvider
         if (false === $serialized) {
             throw new AuthenticatableNotFoundException($id);
         }
+
         return unserialize($serialized);
     }
 

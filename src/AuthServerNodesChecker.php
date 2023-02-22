@@ -14,12 +14,9 @@ declare(strict_types=1);
 namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\Core\Helpers\Str;
-use Generator;
-use LogicException;
 
 class AuthServerNodesChecker
 {
-
     public static function setClusterAvailableNodeIfMissing()
     {
         if (!file_exists(HttpGuardGlobals::nodeServerCachePath())) {
@@ -69,20 +66,20 @@ class AuthServerNodesChecker
     {
         $host = @file_get_contents(HttpGuardGlobals::nodeServerCachePath());
         if (false === $host) {
-            $host =  HttpGuardGlobals::defaultAuthServerNode();
+            $host = HttpGuardGlobals::defaultAuthServerNode();
         }
         if (!$host) {
             throw new \RuntimeException('No auth server node available');
         }
         if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $host)) {
-            return 'http://' . gethostbyaddr($host);
+            return 'http://'.gethostbyaddr($host);
         }
 
         return $host;
     }
 
     /**
-     * @return Generator<int, mixed, mixed, void>
+     * @return \Generator<int, mixed, mixed, void>
      */
     private static function querySecondaryNodes(array $nodes)
     {
@@ -97,18 +94,19 @@ class AuthServerNodesChecker
     private static function isHostAvailable(string $host)
     {
         if (class_exists(\Drewlabs\Net\Ping\Client::class)) {
-
             $pingClient = new \Drewlabs\Net\Ping\Client($host, null, 640);
             $result = $pingClient->request(Str::contains($host, 'localhost') ? \Drewlabs\Net\Ping\Method::FSOCKOPEN : \Drewlabs\Net\Ping\Method::EXEC_BIN);
+
             return false !== (bool) ($result->latency());
         }
+
         return true;
     }
 
     private static function writeCache(string $path, ?string $data)
     {
         if (($dirname = @pathinfo($path, \PATHINFO_DIRNAME)) === false) {
-            throw new LogicException('Failed to create file at path ' . $path);
+            throw new \LogicException('Failed to create file at path '.$path);
         }
         self::createDirectoryIfNotExists($dirname);
         $fd = @fopen($path, 'w');
@@ -117,6 +115,7 @@ class AuthServerNodesChecker
             flock($fd, \LOCK_UN);
             @fclose($fd);
         }
+
         return false;
     }
 
@@ -127,7 +126,7 @@ class AuthServerNodesChecker
         }
         clearstatcache(false, $path);
         if (!is_dir($path)) {
-            throw new LogicException($mkdirError['message'] ?? '');
+            throw new \LogicException($mkdirError['message'] ?? '');
         }
     }
 }

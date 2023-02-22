@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
+use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 use Drewlabs\AuthHttpGuard\Traits\Authenticatable as TraitsAuthenticatable;
 use Drewlabs\AuthHttpGuard\Traits\Authorizable;
 use Drewlabs\AuthHttpGuard\Traits\ContainerAware;
@@ -21,21 +22,15 @@ use Drewlabs\AuthHttpGuard\Traits\HasApiToken;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Contracts\Auth\AuthorizableInterface;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
-use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 use Illuminate\Contracts\Auth\Authenticatable as AuthAuthenticatable;
 
-/** @package Drewlabs\AuthHttpGuard */
-class User implements
-    Authenticatable,
-    AuthorizableInterface,
-    AuthAuthenticatable,
-    HasApiTokens
+class User implements Authenticatable, AuthorizableInterface, AuthAuthenticatable, HasApiTokens
 {
     use AttributesAware;
     use Authorizable;
+    use ContainerAware;
     use HasApiToken;
     use TraitsAuthenticatable;
-    use ContainerAware;
 
     private function __construct(array $attributes = [])
     {
@@ -54,14 +49,15 @@ class User implements
      */
     public function isVerified()
     {
-        return boolval($this->is_verified) || boolval($this->isVerified);
+        return (bool) ($this->is_verified) || (bool) ($this->isVerified);
     }
 
     public function tokenExpires()
     {
-        if (!is_object($this->accessToken)) {
+        if (!\is_object($this->accessToken)) {
             return true;
         }
+
         return $this->accessToken->expires();
     }
 

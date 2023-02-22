@@ -21,7 +21,7 @@ class HttpGuardGlobals
     /**
      * @var string
      */
-    private static $AVAILABLE_NODE_SERVER_CACHE_PATH = __DIR__ . '/../cache/node.sock';
+    private static $AVAILABLE_NODE_SERVER_CACHE_PATH = __DIR__.'/../cache/node.sock';
 
     /**
      * @var array<string,string|array<int,string>>
@@ -29,7 +29,6 @@ class HttpGuardGlobals
     private static $AUTH_SERVERS_CLUSTER = [];
 
     /**
-     *
      * @var string
      */
     private static $DEFAULT_AUTH_SERVER_NODE = null;
@@ -53,11 +52,10 @@ class HttpGuardGlobals
      */
     private static $USE_CACHE = true;
 
-
     /**
-     * Path serialized connected users are cached
+     * Path serialized connected users are cached.
      */
-    private static $CACHE_PATH = __DIR__ . '/../cache/auth.dump';
+    private static $CACHE_PATH = __DIR__.'/../cache/auth.dump';
 
     /**
      * @var array<string|string|int>
@@ -89,12 +87,11 @@ class HttpGuardGlobals
     private static $DEFAULT_CACHE_DRIVER = 'array';
 
     /**
-     * 
      * @var (null|array)[]
      */
     private static $MEMCACHED_CONFIG = [
         'persistent_id' => null,
-        'options' => [ /* \Memcached::OPT_CONNECT_TIMEOUT => 2000, */],
+        'options' => [/* \Memcached::OPT_CONNECT_TIMEOUT => 2000, */],
         'servers' => [
             [
                 'host' => '127.0.0.1',
@@ -105,13 +102,11 @@ class HttpGuardGlobals
     ];
 
     /**
-     *
      * @var string
      */
     private static $CACHE_PREFIX = 'drewlabs_http_guard_';
 
     /**
-     * 
      * @var string
      */
     private static $GUARD = 'http';
@@ -257,7 +252,7 @@ class HttpGuardGlobals
         return static::$MEMCACHED_CONFIG;
     }
 
-    public static function cachePrefix(string $prefix = null)
+    public static function cachePrefix(?string $prefix = null)
     {
         if (null !== $prefix) {
             static::$CACHE_PREFIX = $prefix;
@@ -268,7 +263,6 @@ class HttpGuardGlobals
 
     public static function defaultAuthServerNode(?string $host = null)
     {
-
         if (null !== $host) {
             static::$DEFAULT_AUTH_SERVER_NODE = $host;
         }
@@ -277,30 +271,30 @@ class HttpGuardGlobals
     }
 
     /**
-     * Set/Get the name of the HTTP guard instance
-     * 
-     * @param null|string $name 
-     * @return string 
+     * Set/Get the name of the HTTP guard instance.
+     *
+     * @return string
      */
     public static function guard(?string $name = null)
     {
         if (null !== $name) {
             static::$GUARD = $name;
         }
+
         return static::$GUARD;
     }
 
     /**
-     * Set the path where caches data are written when using array store provider
-     * 
-     * @param string|null $path 
-     * @return string 
+     * Set the path where caches data are written when using array store provider.
+     *
+     * @return string
      */
-    public static function cachePath(string $path = null)
+    public static function cachePath(?string $path = null)
     {
         if (null !== $path) {
             self::$CACHE_PATH = $path;
         }
+
         return self::$CACHE_PATH;
     }
 }

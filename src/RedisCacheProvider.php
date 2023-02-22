@@ -15,7 +15,6 @@ namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\AuthHttpGuard\Exceptions\AuthenticatableNotFoundException;
-use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Predis\Client;
 
@@ -27,7 +26,6 @@ class RedisCacheProvider implements AuthenticatableCacheProvider
     private $client;
 
     /**
-     * 
      * @var string
      */
     private $prefix;
@@ -67,6 +65,7 @@ class RedisCacheProvider implements AuthenticatableCacheProvider
         if (!$this->client->exists($id)) {
             throw new AuthenticatableNotFoundException($id);
         }
+
         return unserialize($this->client->get($id));
     }
 
@@ -82,6 +81,6 @@ class RedisCacheProvider implements AuthenticatableCacheProvider
 
     private function resolveKey(string $key)
     {
-        return $this->prefix . sha1($key);
+        return $this->prefix.sha1($key);
     }
 }

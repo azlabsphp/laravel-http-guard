@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
+use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 use Drewlabs\AuthHttpGuard\Traits\ContainerAware;
 use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\Arr;
-use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 
 class AccessToken implements Token
 {
@@ -68,9 +68,9 @@ class AccessToken implements Token
     }
 
     /**
-     * Checks whether the token has expire
-     * 
-     * @return bool 
+     * Checks whether the token has expire.
+     *
+     * @return bool
      */
     public function expires()
     {
@@ -78,17 +78,18 @@ class AccessToken implements Token
         if (null === $expiresAt) {
             return true;
         }
+
         return !drewlabs_core_datetime_is_future(new \DateTimeImmutable($expiresAt));
     }
 
     /**
-     * Returns the expiration date of the token
-     * 
-     * @return ?string 
+     * Returns the expiration date of the token.
+     *
+     * @return ?string
      */
     public function expiresAt()
     {
-        return isset($this->expires_at) ? $this->expires_at : (isset($this->expiresAt) ? $this->expiresAt : null);
+        return $this->expires_at ?? ($this->expiresAt ?? null);
     }
 
     public function setAccessToken($value)

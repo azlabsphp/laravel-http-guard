@@ -22,7 +22,6 @@ use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Core\Helpers\Arr;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Http\Request;
-use InvalidArgumentException;
 
 class Guard
 {
@@ -66,7 +65,7 @@ class Guard
                         : $user;
                 }
             }
-        } catch (InvalidArgumentException $e) {
+        } catch (\InvalidArgumentException $e) {
             // TODO : Throw new GuardNotFoundException
         }
         if ($token = $request->bearerToken()) {

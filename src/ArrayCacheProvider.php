@@ -15,7 +15,6 @@ namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\AuthHttpGuard\Exceptions\AuthenticatableNotFoundException;
-use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\Contracts\Auth\Authenticatable;
 
 class ArrayCacheProvider implements AuthenticatableCacheProvider
@@ -26,16 +25,16 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
     private $state = [];
 
     /**
-     * 
      * @var string
      */
     private $prefix;
 
     /**
-     * Creates the Array Cache provider instances
-     * 
-     * @param array $state 
-     * @return void 
+     * Creates the Array Cache provider instances.
+     *
+     * @param array $state
+     *
+     * @return void
      */
     private function __construct($state = [])
     {
@@ -54,6 +53,7 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
         if (!\array_key_exists($id, $this->state ?? [])) {
             throw new AuthenticatableNotFoundException($id);
         }
+
         return $this->state[$id];
     }
 
@@ -104,11 +104,10 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
         $deserialized = false !== $contents && !empty($contents) ? @unserialize($contents) : false;
 
         return $deserialized && $deserialized instanceof self ? $deserialized : new self();
-
     }
 
     private function resolveKey(string $key)
     {
-        return $this->prefix . sha1($key);
+        return $this->prefix.sha1($key);
     }
 }
