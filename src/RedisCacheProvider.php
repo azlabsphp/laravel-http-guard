@@ -67,12 +67,7 @@ class RedisCacheProvider implements AuthenticatableCacheProvider
         if (!$this->client->exists($id)) {
             throw new AuthenticatableNotFoundException($id);
         }
-        $user = unserialize($this->client->get($id));
-        if (($user instanceof User) && ($user->tokenExpires())) {
-            throw new TokenExpiresException($id);
-        }
-
-        return $user;
+        return unserialize($this->client->get($id));
     }
 
     public function delete(string $id)

@@ -18,6 +18,7 @@ use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\AuthHttpGuard\Contracts\UserFactory;
 use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\AuthHttpGuard\Exceptions\ServerException;
+use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\HttpClient\Contracts\HttpClientInterface;
@@ -155,7 +156,13 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
     public function getAuthenticatableFromCache(string $token)
     {
-        return $this->getCacheProvider()->read($token);
+        $cacheProvider = $this->getCacheProvider();
+        $user =  $cacheProvider->read($token);
+        if (($user instanceof User) && ($user->tokenExpires())) {
+            // Case the token has expired, we remove the authenticatable instance from cache
+            $cacheProvider->delete($token);
+            throw new TokenExpiresException($token);
+        }
     }
 
     /**

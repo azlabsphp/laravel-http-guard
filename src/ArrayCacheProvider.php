@@ -20,7 +20,6 @@ use Drewlabs\Contracts\Auth\Authenticatable;
 
 class ArrayCacheProvider implements AuthenticatableCacheProvider
 {
-    public const CACHE_PATH = __DIR__.'/../cache/auth.dump';
     /**
      * @var array<string,Authenticatable>
      */
@@ -32,6 +31,12 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
      */
     private $prefix;
 
+    /**
+     * Creates the Array Cache provider instances
+     * 
+     * @param array $state 
+     * @return void 
+     */
     private function __construct($state = [])
     {
         $this->state = $state ?? [];
@@ -49,13 +54,7 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
         if (!\array_key_exists($id, $this->state ?? [])) {
             throw new AuthenticatableNotFoundException($id);
         }
-        $user = $this->state[$id];
-        if (($user instanceof User) && ($user->tokenExpires())) {
-            unset($this->state[$this->resolveKey($id)]);
-            throw new TokenExpiresException($id);
-        }
-
-        return $user;
+        return $this->state[$id];
     }
 
     public function delete(string $id)
@@ -86,22 +85,9 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
 
     public static function dump(self $cache)
     {
-        $writeCache = static function (string $path, ?string $data) {
-            $fd = @fopen($path, 'w');
-            if ($fd && flock($fd, \LOCK_EX | \LOCK_NB)) {
-                fwrite($fd, $data);
-                flock($fd, \LOCK_UN);
-                @fclose($fd);
-            }
-
-            return false;
-        };
-        $writeCache(
-            static::CACHE_PATH,
-            serialize(
-                $cache->mergeState(self::load()->getState())
-            )
-        );
+        if ($result = @serialize($cache->mergeState(self::load()->getState()))) {
+            ReadWriter::open(HttpGuardGlobals::cachePath(), 'wb')->write($result);
+        }
     }
 
     /**
@@ -109,28 +95,20 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
      */
     public static function load()
     {
-        if (!file_exists(static::CACHE_PATH)) {
+        if (!file_exists($path = HttpGuardGlobals::cachePath())) {
             return new self();
         }
-        $readCache = static function ($path) {
-            $fd = @fopen($path, 'r');
-            if ($fd && flock($fd, \LOCK_EX | \LOCK_NB)) {
-                $contents = fread($fd, filesize($path));
-                flock($fd, \LOCK_UN);
-                @fclose($fd);
 
-                return $contents;
-            }
+        $contents = ReadWriter::open($path)->read();
 
-            return false;
-        };
-        $self = unserialize($readCache(static::CACHE_PATH)) ?? new self();
+        $deserialized = false !== $contents && !empty($contents) ? @unserialize($contents) : false;
 
-        return $self;
+        return $deserialized && $deserialized instanceof self ? $deserialized : new self();
+
     }
 
     private function resolveKey(string $key)
     {
-        return $this->prefix.sha1($key);
+        return $this->prefix . sha1($key);
     }
 }

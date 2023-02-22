@@ -53,6 +53,12 @@ class HttpGuardGlobals
      */
     private static $USE_CACHE = true;
 
+
+    /**
+     * Path serialized connected users are cached
+     */
+    private static $CACHE_PATH = __DIR__ . '/../cache/auth.dump';
+
     /**
      * @var array<string|string|int>
      */
@@ -284,5 +290,19 @@ class HttpGuardGlobals
             static::$GUARD = $name;
         }
         return static::$GUARD;
+    }
+
+    /**
+     * Set the path where caches data are written when using array store provider
+     * 
+     * @param string|null $path 
+     * @return string 
+     */
+    public static function cachePath(string $path = null)
+    {
+        if (null !== $path) {
+            self::$CACHE_PATH = $path;
+        }
+        return self::$CACHE_PATH;
     }
 }

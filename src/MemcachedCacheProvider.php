@@ -15,7 +15,6 @@ namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\AuthHttpGuard\Exceptions\AuthenticatableNotFoundException;
-use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\Contracts\Auth\Authenticatable;
 
 class MemcachedCacheProvider implements AuthenticatableCacheProvider
@@ -56,12 +55,7 @@ class MemcachedCacheProvider implements AuthenticatableCacheProvider
         if (false === $serialized) {
             throw new AuthenticatableNotFoundException($id);
         }
-        $user = unserialize($serialized);
-        if (($user instanceof User) && ($user->tokenExpires())) {
-            throw new TokenExpiresException($id);
-        }
-
-        return $user;
+        return unserialize($serialized);
     }
 
     public function delete(string $id)
