@@ -85,8 +85,16 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
 
     public static function dump(self $cache)
     {
+        if (!HttpGuardGlobals::usesCache()) {
+            return;
+        }
+        $path = HttpGuardGlobals::cachePath();
+        $dirname = dirname($path);
+        if (!is_dir($dirname)) {
+            mkdir($dirname, 0777, true);
+        }
         if ($result = @serialize($cache->mergeState(self::load()->getState()))) {
-            ReadWriter::open(HttpGuardGlobals::cachePath(), 'wb')->write($result);
+            ReadWriter::open($path, 'wb')->write($result);
         }
     }
 
@@ -95,6 +103,9 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
      */
     public static function load()
     {
+        if (!HttpGuardGlobals::usesCache()) {
+            return new self();
+        }
         if (!file_exists($path = HttpGuardGlobals::cachePath())) {
             return new self();
         }
