@@ -20,7 +20,11 @@
 - Added a UserFactory interface an a DefaultUserFactory implementation
 - Updated AuthenticatableProvider to use callable as cache provider and user factory classes
 
-
-## 
+## [0.3.9]
 
 - Review Array cache implementation details to fix issue with fread with 0 as parameter failed
+
+## [0.4.0] 2023-04-02
+
+- Replace http/client library with drewlabs/curl-rest-client implementation
+- Add breaking change to Authenticatable provider wich takes a host path instead of a client instance

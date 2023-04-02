@@ -23,7 +23,6 @@ use Drewlabs\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as BaseAuthenticatable;
 use Drewlabs\Curl\REST\Client;
 use Drewlabs\Curl\REST\Exceptions\BadRequestException;
-use Drewlabs\Curl\REST\Exceptions\NetworkException;
 use Drewlabs\Curl\REST\Exceptions\RequestException;
 use Drewlabs\Curl\REST\Response;
 
@@ -206,7 +205,6 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
      */
     private function isAuthenticatable($instance)
     {
-        return is_a($instance, BaseAuthenticatable::class, true) ||
-            is_a($instance, Authenticatable::class, true);
+        return is_a($instance, BaseAuthenticatable::class, true) || is_a($instance, Authenticatable::class, true);
     }
 }
