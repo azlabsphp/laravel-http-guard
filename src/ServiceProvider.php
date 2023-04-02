@@ -36,7 +36,13 @@ class ServiceProvider extends SupportServiceProvider
                 });
             });
         });
-
+        // #region Declares or defines the auth cache and server node cache paths
+        $cacheDir = DIRECTORY_SEPARATOR . 'http-guard' . DIRECTORY_SEPARATOR . 'cache';
+        if (is_dir($this->app->storagePath()) && (null !== ($cacheDirPath = $this->makeDirectory(sprintf('%s%s', rtrim($this->app->storagePath(), DIRECTORY_SEPARATOR), $cacheDir))))) {
+            HttpGuardGlobals::cachePath($cacheDirPath . DIRECTORY_SEPARATOR . 'auth.dump');
+            HttpGuardGlobals::nodeServerCachePath($cacheDirPath . DIRECTORY_SEPARATOR . 'node.sock');
+        }
+        // #endregion Declares or defines the auth cache and server node cache paths
         if (!$this->app->runningInConsole()) {
             $this->initializeAuthServerNodeChecker();
         }
@@ -84,8 +90,7 @@ class ServiceProvider extends SupportServiceProvider
                     $driver = $config->get('auth.guards.'.(HttpGuardGlobals::guard() ?? 'http').'.driver');
                     HttpGuardGlobals::defaultAuthServerNode($config->get('auth.providers.'.$driver.'.hosts.default'));
                     HttpGuardGlobals::hosts($config->get('auth.providers.'.$driver.'.hosts.cluster', []));
-
-                    return HttpClientCreator::createHttpClient(AuthServerNodesChecker::getAuthServerNode());
+                    return AuthServerNodesChecker::getAuthServerNode();
                 }
             );
         });
@@ -110,5 +115,22 @@ class ServiceProvider extends SupportServiceProvider
     private function initializeAuthServerNodeChecker()
     {
         AuthServerNodesChecker::setClusterAvailableNodeIfMissing();
+    }
+
+    /**
+     * Creates directory if exists
+     * 
+     * @param string $dir 
+     * @return string|null 
+     */
+    private function makeDirectory(string $dir)
+    {
+        if (is_dir($dir)) {
+            return $dir;
+        }
+        if (@mkdir($dir, 0775, true)) {
+            return $dir;
+        }
+        return null;
     }
 }

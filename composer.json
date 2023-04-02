@@ -19,12 +19,11 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "php": "^7.3|^7.4|^8.0|^8.1",
+        "php": ">=7.2",
         "drewlabs/contracts": "^1.0|^2.5",
         "drewlabs/core-helpers": "^1.0|^2.3",
-        "drewlabs/http-client": "^1.0",
-        "illuminate/contracts": "^6.0|^7.0|^8.0|^9.0",
-        "illuminate/support": "^6.0|^7.0|^8.0|^9.0"
+        "drewlabs/curl-rest-client": "^0.1.20",
+        "illuminate/support": "^6.0|^7.0|^8.0|^9.0|^10.0"
     },
     "repositories":[
         {
@@ -34,10 +33,6 @@
         {
             "type": "vcs",
             "url": "git@github.com:liksoft/drewlabs-php-core-helpers.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:liksoft/drewlabs-php-http-client.git"
         }
     ],    
     "suggest": {

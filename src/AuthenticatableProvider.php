@@ -16,16 +16,16 @@ namespace Drewlabs\AuthHttpGuard;
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\AuthHttpGuard\Contracts\UserFactory;
-use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\AuthHttpGuard\Exceptions\ServerException;
 use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\Auth\Authenticatable;
-use Drewlabs\HttpClient\Contracts\HttpClientInterface;
-use Drewlabs\HttpClient\Core\HttpClientCreator;
-use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Contracts\Auth\Authenticatable as BaseAuthenticatable;
+use Drewlabs\Curl\REST\Client;
+use Drewlabs\Curl\REST\Exceptions\BadRequestException;
+use Drewlabs\Curl\REST\Exceptions\NetworkException;
+use Drewlabs\Curl\REST\Exceptions\RequestException;
+use Drewlabs\Curl\REST\Response;
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 {
@@ -35,9 +35,9 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     private $cacheProvider;
 
     /**
-     * @var HttpClientInterface|\Closure
+     * @var string
      */
-    private $client;
+    private $host;
 
     /**
      * @var bool
@@ -54,17 +54,17 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
      *
      * @param AuthenticatableCacheProvider|\Closure $cacheProvider
      * @param UserFactory|\Closure|null             $userFactory
-     * @param HttpClientInterface|\Closure|null     $client
+     * @param string|\Closure|null                  $host
      *
      * @return self
      */
-    public function __construct($cacheProvider = null, $userFactory = null, $client = null)
+    public function __construct($cacheProvider = null, $userFactory = null, $host = null)
     {
         try {
             $this->userFactory = $userFactory ?? new DefaultUserFactory();
             $this->cacheProvider = $cacheProvider ?? ArrayCacheProvider::load();
-            $this->client = $client ?? static function () {
-                return HttpClientCreator::createHttpClient(AuthServerNodesChecker::getAuthServerNode());
+            $this->host = $host ?? static function () {
+                return AuthServerNodesChecker::getAuthServerNode();
             };
         } catch (\RuntimeException $e) {
             $this->useCache = true;
@@ -89,30 +89,33 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         if (null !== $userFactory) {
             $this->userFactory = $userFactory;
         }
-
         return $this;
     }
 
     /**
      * Revoke the connected user auth token.
-     *
-     * @throws UnAuthorizedException
-     * @throws BadResponseException
-     * @throws ServerException
-     * @throws GuzzleException
-     *
-     * @return void
+     * 
+     * @param string $token 
+     * @return void 
+     * @throws UnAuthorizedException 
+     * @throws RequestException 
+     * @throws ServerException 
      */
     public function revokeOAuthToken(string $token)
     {
         try {
-            $this->getClient()->withBearerToken($token)->get(HttpGuardGlobals::revokePath());
-        } catch (BadResponseException $e) {
-            $response = $e->getResponse();
-            if (401 === $response->getStatusCode()) {
-                throw new UnAuthorizedException($token, $response->getStatusCode());
+            Client::new()->withBearerToken($token)->get($this->makeRequestURL(HttpGuardGlobals::revokePath()));
+        } catch (RequestException $e) {
+            if (401 === $e->getStatus()) {
+                throw new UnAuthorizedException($token, $e->getStatus());
             }
             throw $e;
+        } catch (BadRequestException $e) {
+            $response = $e->getResponse();
+            if (401 === $response->getStatus()) {
+                throw new UnAuthorizedException($token, $response->getStatus());
+            }
+            return null;
         } catch (\Exception $e) {
             throw new ServerException($e->getMessage(), $e->getCode(), $e);
         }
@@ -125,28 +128,30 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             return $this->getAuthenticatableFromCache($token);
         }
         try {
-            $response = $this->getClient()->withBearerToken($token)->get(HttpGuardGlobals::userPath());
+            /**
+             * @var Response
+             */
+            $response = Client::new()->withBearerToken($token)->get($this->makeRequestURL(HttpGuardGlobals::userPath()));
             // We call the user factory create() method to build the current user from the
             // response body of the HTTP request
             $user = \is_callable($this->userFactory) ?
-                ($this->userFactory)(json_decode($response->getBody()->getContents(), true), $token)
-                : $this->userFactory->create(json_decode($response->getBody()->getContents(), true), $token);
+                ($this->userFactory)($response->getBody(), $token)
+                : $this->userFactory->create($response->getBody(), $token);
             if (HttpGuardGlobals::usesCache() && $this->isAuthenticatable($user)) {
                 $this->getCacheProvider()->write($token, $user);
             }
 
             return $user;
-        } catch (BadResponseException $e) {
-            if (!$e->hasResponse()) {
-                return null;
+        } catch (RequestException $e) {
+            if (401 === $e->getStatus()) {
+                throw new UnAuthorizedException($token, $e->getStatus());
             }
-            $response = $e->getResponse();
-            if (401 === $response->getStatusCode()) {
-                throw new UnAuthorizedException($token, $response->getStatusCode());
-            }
-
             return null;
-        } catch (ServerBadResponseException $e) {
+        } catch (BadRequestException $e) {
+            $response = $e->getResponse();
+            if (401 === $response->getStatus()) {
+                throw new UnAuthorizedException($token, $response->getStatus());
+            }
             return null;
         } catch (\Exception $e) {
             if (HttpGuardGlobals::usesCache()) {
@@ -182,15 +187,14 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     }
 
     /**
-     * @return HttpClientInterface
+     * 
+     * @param string $path 
+     * @return string 
      */
-    public function getClient()
+    private function makeRequestURL(string $path)
     {
-        if (is_a($this->client, \Closure::class)) {
-            return ($this->client)();
-        }
-
-        return $this->client;
+        $host = is_a($this->host, \Closure::class) ? ($this->host)() : $this->host;
+        return sprintf("%s/%s", rtrim($host ?? ''), ltrim($path ?? '', '/'));
     }
 
     /**

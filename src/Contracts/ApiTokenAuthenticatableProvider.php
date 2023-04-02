@@ -16,25 +16,30 @@ namespace Drewlabs\AuthHttpGuard\Contracts;
 use Drewlabs\AuthHttpGuard\Exceptions\ServerException;
 use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\Auth\Authenticatable;
-use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\GuzzleException;
+use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
+use Drewlabs\Curl\REST\Exceptions\RequestException;
 
 interface ApiTokenAuthenticatableProvider
 {
     /**
-     * Fetch the authenticatable using user provided token.
+     * Get authenticable instance for user provided token
+     * 
+     * @param string $token 
+     * @return null|Authenticatable 
+     * @throws TokenExpiresException 
+     * @throws UnAuthorizedException 
+     * @throws ServerException 
      */
     public function getByOAuthToken(string $token): ?Authenticatable;
 
     /**
      * Revoke the connected user auth token.
-     *
-     * @throws UnAuthorizedException
-     * @throws BadResponseException
-     * @throws ServerException
-     * @throws GuzzleException
-     *
-     * @return void
+     * 
+     * @param string $token 
+     * @return void 
+     * @throws UnAuthorizedException 
+     * @throws RequestException 
+     * @throws ServerException 
      */
     public function revokeOAuthToken(string $token);
 }

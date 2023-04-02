@@ -51,9 +51,7 @@ trait Authorizable
      */
     public function can($ability, $arguments = [])
     {
-        return self::createResolver(Gate::class)()
-            ->forUser($this)
-            ->check($ability, $arguments);
+        return self::createResolver(Gate::class)()->forUser($this)->check($ability, $arguments);
     }
 
     /**
