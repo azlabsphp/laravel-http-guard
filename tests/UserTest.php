@@ -11,8 +11,8 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
-use Drewlabs\AuthHttpGuard\User;
+use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
+use Drewlabs\HttpGuard\User;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use PHPUnit\Framework\TestCase;
 

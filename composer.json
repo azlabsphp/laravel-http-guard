@@ -13,7 +13,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Drewlabs\\AuthHttpGuard\\": "src/"
+            "Drewlabs\\HttpGuard\\": "src/"
         }
     },
     "authors": [

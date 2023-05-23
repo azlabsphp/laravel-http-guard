@@ -11,14 +11,14 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard;
+namespace Drewlabs\HttpGuard;
 
-use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
-use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
-use Drewlabs\AuthHttpGuard\Traits\Authenticatable as TraitsAuthenticatable;
-use Drewlabs\AuthHttpGuard\Traits\Authorizable;
-use Drewlabs\AuthHttpGuard\Traits\ContainerAware;
-use Drewlabs\AuthHttpGuard\Traits\HasApiToken;
+use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
+use Drewlabs\HttpGuard\Traits\AttributesAware;
+use Drewlabs\HttpGuard\Traits\Authenticatable as TraitsAuthenticatable;
+use Drewlabs\HttpGuard\Traits\Authorizable;
+use Drewlabs\HttpGuard\Traits\ContainerAware;
+use Drewlabs\HttpGuard\Traits\HasApiToken;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Contracts\Auth\AuthorizableInterface;
 use Drewlabs\Contracts\OAuth\HasApiTokens;

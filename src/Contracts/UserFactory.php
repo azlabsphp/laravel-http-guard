@@ -11,7 +11,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard\Contracts;
+namespace Drewlabs\HttpGuard\Contracts;
 
 use Drewlabs\Contracts\Auth\Authenticatable;
 
@@ -24,7 +24,7 @@ interface UserFactory
      * Implementation classes can use it to set the current accessToken of the user
      *
      * **Note**
-     * Implementation classes must throw a {@see \Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException}
+     * Implementation classes must throw a {@see \Drewlabs\HttpGuard\Exceptions\ServerBadResponseException}
      * if required attributes are missing from the $attributes parameter.
      *
      * @return \Illuminate\Contracts\Auth\Authenticatable|Authenticatable

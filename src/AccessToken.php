@@ -11,11 +11,11 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard;
+namespace Drewlabs\HttpGuard;
 
-use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
-use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
-use Drewlabs\AuthHttpGuard\Traits\ContainerAware;
+use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
+use Drewlabs\HttpGuard\Traits\AttributesAware;
+use Drewlabs\HttpGuard\Traits\ContainerAware;
 use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\Core\Helpers\ImmutableDateTime;

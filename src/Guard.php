@@ -11,13 +11,13 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard;
+namespace Drewlabs\HttpGuard;
 
-use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
-use Drewlabs\AuthHttpGuard\Exceptions\AuthenticatableNotFoundException;
-use Drewlabs\AuthHttpGuard\Exceptions\ServerBadResponseException;
-use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
-use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
+use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
+use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
+use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
+use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
+use Drewlabs\HttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Core\Helpers\Arr;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;

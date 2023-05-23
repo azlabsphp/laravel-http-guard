@@ -11,9 +11,9 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard;
+namespace Drewlabs\HttpGuard;
 
-use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
+use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 
 class CacheProviderFactory
 {

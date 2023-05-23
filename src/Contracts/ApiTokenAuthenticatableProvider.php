@@ -11,12 +11,12 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard\Contracts;
+namespace Drewlabs\HttpGuard\Contracts;
 
-use Drewlabs\AuthHttpGuard\Exceptions\ServerException;
-use Drewlabs\AuthHttpGuard\Exceptions\UnAuthorizedException;
+use Drewlabs\HttpGuard\Exceptions\ServerException;
+use Drewlabs\HttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\Auth\Authenticatable;
-use Drewlabs\AuthHttpGuard\Exceptions\TokenExpiresException;
+use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\Curl\REST\Exceptions\RequestException;
 
 interface ApiTokenAuthenticatableProvider

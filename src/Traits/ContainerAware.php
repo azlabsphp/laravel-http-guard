@@ -11,7 +11,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard\Traits;
+namespace Drewlabs\HttpGuard\Traits;
 
 trait ContainerAware
 {

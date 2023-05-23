@@ -11,7 +11,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard\Contracts;
+namespace Drewlabs\HttpGuard\Contracts;
 
 use Drewlabs\Contracts\Auth\Authenticatable;
 

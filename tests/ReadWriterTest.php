@@ -11,7 +11,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-use Drewlabs\AuthHttpGuard\ReadWriter;
+use Drewlabs\HttpGuard\ReadWriter;
 use PHPUnit\Framework\TestCase;
 
 class ReadWriterTest extends TestCase

@@ -25,7 +25,7 @@ By default the library is build to inject a service provider in laravel project 
 | totally optional, so you are not required to uncomment this line.
 |
  */
-$app->register(\Drewlabs\AuthHttpGuard\ServiceProvider::class);
+$app->register(\Drewlabs\HttpGuard\ServiceProvider::class);
 ```
 
 * Configure guard for laravel/lumen project
@@ -67,7 +67,7 @@ return [
         // ...
         'http' => [
             // Model class to be used by the package providers
-            'model' => \Drewlabs\AuthHttpGuard\User::class,
+            'model' => \Drewlabs\HttpGuard\User::class,
             // For Http request we must define the endpoint where is located the
             // authorization server(s)
             'hosts' => [
@@ -290,9 +290,9 @@ class AuthServiceProvider extends ServiceProvider
     public function boot()
     {
         // Configure the Http-Guard library to use cache
-        \Drewlabs\AuthHttpGuard\HttpGuardGlobals::usesCache(true);
+        \Drewlabs\HttpGuard\HttpGuardGlobals::usesCache(true);
         // Configure the http-guard library to use PHP 'memcached' storage as default driver
-        \Drewlabs\AuthHttpGuard\HttpGuardGlobals::useCacheDriver('memcached');
+        \Drewlabs\HttpGuard\HttpGuardGlobals::useCacheDriver('memcached');
         // ...
     }
 }
@@ -309,12 +309,12 @@ Next you configure the library to use redis as cache provider as follow:
 
 ```php
     // Configure the Http-Guard library to use cache
-    \Drewlabs\AuthHttpGuard\HttpGuardGlobals::usesCache(true);
+    \Drewlabs\HttpGuard\HttpGuardGlobals::usesCache(true);
     // Configure the http-guard library to use redis storage as default driver
-    \Drewlabs\AuthHttpGuard\HttpGuardGlobals::useCacheDriver('redis');
+    \Drewlabs\HttpGuard\HttpGuardGlobals::useCacheDriver('redis');
 
     // Define the redis connection configuration as defined in predis documentation
-    \Drewlabs\AuthHttpGuard\HttpGuardGlobals::forRedis([
+    \Drewlabs\HttpGuard\HttpGuardGlobals::forRedis([
             'scheme' => 'tcp',
             'host'   => '10.0.0.1',
             'port'   => 6379,
@@ -329,7 +329,7 @@ Note: Predis documentation can be found here [https://github.com/predis/predis]
 If your platform configuration support multiple servers for authentication, declare the list of clusters in the `config/auth.php[providers[http][hosts][cluster]]` map entry.
 
 Note:
-    When running a cluster, developper must provide a background task that call [\Drewlabs\AuthHttpGuard\AuthServerNodesChecker::setAvailableNode()] on a regular basic to update the available node in the cluster in the cache.
+    When running a cluster, developper must provide a background task that call [\Drewlabs\HttpGuard\AuthServerNodesChecker::setAvailableNode()] on a regular basic to update the available node in the cluster in the cache.
 
 * Customization
 
@@ -340,7 +340,7 @@ By default the guard implementation expect the identity web service to provide `
 ```php
 // app/AuthServiceProvider.php
 
-use Drewlabs\AuthHttpGuard\HttpGuardGlobals;
+use Drewlabs\HttpGuard\HttpGuardGlobals;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -361,7 +361,7 @@ By default the library assume the configured guard name is `http`. Depending on 
 ```php
 // app/AuthServiceProvider.php
 
-use Drewlabs\AuthHttpGuard\HttpGuardGlobals;
+use Drewlabs\HttpGuard\HttpGuardGlobals;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -376,13 +376,13 @@ class AuthServiceProvider extends ServiceProvider
 
 -- User Factory
 
-Building user instance from the request response and validating required inputs can be a tidious task. Therefore, the library provide a default user factory class that build and instance of `Drewlabs\Contracts\Auth\Authenticatable::class` & `\Illuminate\Contracts\Auth\Authenticatable::class` from request response body. But the default factory class can be overriden by binding a `\Drewlabs\AuthHttpGuard\Contracts\UserFactory` into the container or by globally defining the user factory class.
+Building user instance from the request response and validating required inputs can be a tidious task. Therefore, the library provide a default user factory class that build and instance of `Drewlabs\Contracts\Auth\Authenticatable::class` & `\Illuminate\Contracts\Auth\Authenticatable::class` from request response body. But the default factory class can be overriden by binding a `\Drewlabs\HttpGuard\Contracts\UserFactory` into the container or by globally defining the user factory class.
 
 ```php
 
 // app/AuthServiceProvider.php
 
-use Drewlabs\AuthHttpGuard\Contracts\UserFactory;
+use Drewlabs\HttpGuard\Contracts\UserFactory;
 
 class AuthServiceProvider extends ServiceProvider
 {

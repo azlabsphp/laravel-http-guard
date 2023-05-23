@@ -11,10 +11,10 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard;
+namespace Drewlabs\HttpGuard;
 
-use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
-use Drewlabs\AuthHttpGuard\Exceptions\AuthenticatableNotFoundException;
+use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
+use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 use Drewlabs\Contracts\Auth\Authenticatable;
 
 class ArrayCacheProvider implements AuthenticatableCacheProvider

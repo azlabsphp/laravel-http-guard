@@ -11,10 +11,10 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard;
+namespace Drewlabs\HttpGuard;
 
-use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
-use Drewlabs\AuthHttpGuard\Contracts\UserFactory;
+use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
+use Drewlabs\HttpGuard\Contracts\UserFactory;
 use Illuminate\Auth\RequestGuard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider as SupportServiceProvider;

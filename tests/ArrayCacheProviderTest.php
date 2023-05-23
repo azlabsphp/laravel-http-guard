@@ -11,9 +11,9 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-use Drewlabs\AuthHttpGuard\ArrayCacheProvider;
-use Drewlabs\AuthHttpGuard\HttpGuardGlobals;
-use Drewlabs\AuthHttpGuard\User;
+use Drewlabs\HttpGuard\ArrayCacheProvider;
+use Drewlabs\HttpGuard\HttpGuardGlobals;
+use Drewlabs\HttpGuard\User;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Core\Helpers\Rand;
 use Drewlabs\Core\Helpers\UUID;
@@ -61,7 +61,7 @@ class ArrayCacheProviderTest extends TestCase
     public function test_read_non_existing_key_from_cache_returns_throws_exception()
     {
         $this->cleanup();
-        $this->expectException(\Drewlabs\AuthHttpGuard\Exceptions\AuthenticatableNotFoundException::class);
+        $this->expectException(\Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException::class);
         $instance = ArrayCacheProvider::load();
         $id = UUID::create();
         $this->assertNull($instance->read($id));

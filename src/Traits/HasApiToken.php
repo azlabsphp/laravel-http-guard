@@ -11,9 +11,9 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\AuthHttpGuard\Traits;
+namespace Drewlabs\HttpGuard\Traits;
 
-use Drewlabs\AuthHttpGuard\AccessToken;
+use Drewlabs\HttpGuard\AccessToken;
 
 /**
  * @property AccessToken $accessToken
