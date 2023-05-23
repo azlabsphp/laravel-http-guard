@@ -4,48 +4,6 @@ Http Guard implementation using oauth bearer token to authenticate request using
 
 Note: The package is under active development as the Api can change frequently, refers to the Changelog and the Readme for any changes.
 
-## Installation
-
-The recommended method to integrate the Http guard in your project is by using composer package manager. This is an unofficial package therefore it will required
-developper to add the git repository to the list of vcs repository.
-
-```json
-// composer.json
-{
-  "require": {
-    // Other dependencies
-    "drewlabs/contracts": "^2.0",
-    "drewlabs/core-helpers": "^2.0",
-    "drewlabs/http-client": "^1.0",
-    "drewlabs/auth-http-guard": "^0.3"
-  },
-  
-  "repositories":[
-        // Other repositories
-        {
-            "type": "vcs",
-            "url": "git@github.com:liksoft/drewlabs-php-contracts.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:liksoft/drewlabs-php-core-helpers.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:liksoft/drewlabs-php-http-client.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:liksoft/drewlabs-php-http-guard.git"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/liksoft/drewlabs-php-http-guard.git"
-        }
-    ]
-}
-```
-
 ## Usage
 
 * Service provider
@@ -126,7 +84,7 @@ return [
             ]
         ]
     ],
-    
+  
     // ...
 
 ];
@@ -467,7 +425,7 @@ return [
             // 'userFactory' => \App\UserFactory::class,
             // Using a closure
             'userFactory' => function(array $attributes = [], ?string $token = null) {
-                
+              
             }
         ]
     ],

@@ -18,12 +18,18 @@ use Drewlabs\AuthHttpGuard\Traits\AttributesAware;
 use Drewlabs\AuthHttpGuard\Traits\ContainerAware;
 use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\Arr;
+use Drewlabs\Core\Helpers\ImmutableDateTime;
 
 class AccessToken implements Token
 {
     use AttributesAware;
     use ContainerAware;
 
+    /**
+     * Creates class instance
+     * 
+     * @param array $attributes 
+     */
     public function __construct(array $attributes = [])
     {
         $this->attributes = $attributes;
@@ -33,9 +39,6 @@ class AccessToken implements Token
     {
         if ($this->authToken) {
             try {
-                /**
-                 * @var ApiTokenAuthenticatableProvider
-                 */
                 $provider = static::createResolver(ApiTokenAuthenticatableProvider::class)() ?? new AuthenticatableProvider();
             } catch (\Throwable $th) {
                 $provider = new AuthenticatableProvider();
@@ -79,7 +82,7 @@ class AccessToken implements Token
             return true;
         }
 
-        return !drewlabs_core_datetime_is_future(new \DateTimeImmutable($expiresAt));
+        return !ImmutableDateTime::isfuture(new \DateTimeImmutable($expiresAt));
     }
 
     /**

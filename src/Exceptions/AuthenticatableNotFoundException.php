@@ -15,6 +15,11 @@ namespace Drewlabs\AuthHttpGuard\Exceptions;
 
 class AuthenticatableNotFoundException extends \Exception
 {
+    /**
+     * Creates class instance
+     * 
+     * @param string $id 
+     */
     public function __construct(string $id)
     {
         $message = "No user found matching provided $id token";

@@ -15,6 +15,13 @@ namespace Drewlabs\AuthHttpGuard\Exceptions;
 
 class TokenExpiresException extends \Exception
 {
+    /**
+     * Creates class instance
+     * 
+     * @param string $token 
+     * @param int $statusCode 
+     * @return void 
+     */
     public function __construct(string $token, int $statusCode = 401)
     {
         $message = "Authentication token $token has expired";

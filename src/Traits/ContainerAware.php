@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Drewlabs\AuthHttpGuard\Traits;
 
-use Psr\Container\ContainerInterface;
-
 trait ContainerAware
 {
     /**
@@ -25,32 +23,22 @@ trait ContainerAware
     public static function createResolver($abstract = null)
     {
         /*
-         * @return ContainerInterface|\Illuminate\Container\Container|mixed
+         * @return \Illuminate\Contracts\Container\Container|mixed
          */
-        return static function ($container = null) use ($abstract) {
-            $laravelContainerClass = \Illuminate\Container\Container::class;
-            if (null === $container && class_exists($laravelContainerClass)) {
-                $container = forward_static_call([$laravelContainerClass, 'getInstance']);
+        return static function ($context = null) use ($abstract) {
+            if ($context) {
+                return null === $abstract ? $context : $context->get($abstract);
             }
-            if (null === $abstract) {
-                return $container;
-            }
-            if ($container instanceof \ArrayAccess) {
-                return $container[$abstract];
-            }
-            if (
-                class_exists($laravelContainerClass) &&
-                $container instanceof \Illuminate\Container\Container
-            ) {
-                return $container->make($abstract);
-            }
-            if ($container instanceof ContainerInterface) {
-                return $container->get($abstract);
-            }
-            if (!\is_object($container)) {
-                throw new \Exception('A container instance is required to create a resolver');
-            }
-            throw new \InvalidArgumentException(\get_class($container).' is not a '.ContainerInterface::class.' nor '.\Illuminate\Container\Container::class.' and is not array accessible');
+            return null === $abstract ? self::getContainerInstance() : self::getContainerInstance()->make($abstract);
         };
+    }
+
+    /**
+     * 
+     * @return \Illuminate\Contracts\Container\Container
+     */
+    private static function getContainerInstance()
+    {
+        return forward_static_call([\Illuminate\Container\Container::class, 'getInstance']);
     }
 }

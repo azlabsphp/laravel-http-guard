@@ -15,7 +15,6 @@ namespace Drewlabs\AuthHttpGuard;
 
 use Drewlabs\AuthHttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\AuthHttpGuard\Contracts\UserFactory;
-use Drewlabs\HttpClient\Core\HttpClientCreator;
 use Illuminate\Auth\RequestGuard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider as SupportServiceProvider;
@@ -62,8 +61,8 @@ class ServiceProvider extends SupportServiceProvider
                 static function (array $attributes = [], ?string $token = null) use ($app) {
                     // #region Define user global configurations
                     $config = $app['config'];
-                    $driver = $config->get('auth.guards.'.(HttpGuardGlobals::guard() ?? 'http').'.driver');
-                    $model = $config->get('auth.providers.'.$driver.'.model');
+                    $driver = $config->get('auth.guards.' . (HttpGuardGlobals::guard() ?? 'http') . '.driver');
+                    $model = $config->get('auth.providers.' . $driver . '.model');
                     HttpGuardGlobals::authenticatableClass($model ?? (class_exists(\Drewlabs\OAuthUser\User::class) ? Drewlabs\OAuthUser\User::class : User::class));
                     // #endregion Define user global configurations
                     $userFactory = null;
@@ -71,7 +70,7 @@ class ServiceProvider extends SupportServiceProvider
                         $userFactory = $app[UserFactory::class];
                     }
                     if (null === $userFactory) {
-                        $userFactoryClass = $config->get('auth.providers.'.$driver.'.userFactory');
+                        $userFactoryClass = $config->get('auth.providers.' . $driver . '.userFactory');
                         if ($userFactoryClass) {
                             $userFactory = \is_string($userFactoryClass) && class_exists($userFactoryClass) ? $app[$userFactoryClass] : $userFactoryClass;
                         }
@@ -80,16 +79,16 @@ class ServiceProvider extends SupportServiceProvider
                         $userFactory = $app[DefaultUserFactory::class];
                     }
                     if (!is_a($userFactory, UserFactory::class) && !\is_callable($userFactory)) {
-                        throw new \InvalidArgumentException('User Factory must be an istance of '.UserFactory::class.' or callable, instance of '.(\is_object($userFactory) && null !== $userFactory ? \get_class($userFactory) : \gettype($userFactory)));
+                        throw new \InvalidArgumentException('User Factory must be an istance of ' . UserFactory::class . ' or callable, instance of ' . (\is_object($userFactory) && null !== $userFactory ? \get_class($userFactory) : \gettype($userFactory)));
                     }
 
                     return \is_callable($userFactory) ? ($userFactory)($attributes, $token) : $userFactory->create($attributes, $token);
                 },
                 static function () use ($app) {
                     $config = $app['config'];
-                    $driver = $config->get('auth.guards.'.(HttpGuardGlobals::guard() ?? 'http').'.driver');
-                    HttpGuardGlobals::defaultAuthServerNode($config->get('auth.providers.'.$driver.'.hosts.default'));
-                    HttpGuardGlobals::hosts($config->get('auth.providers.'.$driver.'.hosts.cluster', []));
+                    $driver = $config->get('auth.guards.' . (HttpGuardGlobals::guard() ?? 'http') . '.driver');
+                    HttpGuardGlobals::defaultAuthServerNode($config->get('auth.providers.' . $driver . '.hosts.default'));
+                    HttpGuardGlobals::hosts($config->get('auth.providers.' . $driver . '.hosts.cluster', []));
                     return AuthServerNodesChecker::getAuthServerNode();
                 }
             );
@@ -105,11 +104,7 @@ class ServiceProvider extends SupportServiceProvider
      */
     private function createGuardInstance($app, $auth)
     {
-        return new RequestGuard(
-            new Guard($auth, $app[ApiTokenAuthenticatableProvider::class]),
-            $app['request'],
-            null
-        );
+        return new RequestGuard(new Guard($auth, $app[ApiTokenAuthenticatableProvider::class]), $app['request'], null);
     }
 
     private function initializeAuthServerNodeChecker()

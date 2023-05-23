@@ -1,11 +1,16 @@
 {
-    "name": "drewlabs/auth-http-guard",
+    "name": "drewlabs/laravel-http-guard",
     "description": "This package provide implementation of an authentication guard that use http connection to query for authenticated user from a remote source",
     "type": "library",
     "require-dev": {
         "phpunit/phpunit": "^9.5"
     },
     "license": "MIT",
+    "keywords": [
+        "laravel",
+        "guard",
+        "http"
+    ],
     "autoload": {
         "psr-4": {
             "Drewlabs\\AuthHttpGuard\\": "src/"
@@ -17,30 +22,22 @@
             "email": "asmyns.platonnas29@gmail.com"
         }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
         "php": ">=7.2",
-        "drewlabs/contracts": "^1.0|^2.5",
-        "drewlabs/core-helpers": "^1.0|^2.3",
+        "drewlabs/contracts": "^0.2",
+        "drewlabs/core-helpers": "^0.2",
         "drewlabs/curl-rest-client": "^0.1.20|^0.2",
-        "illuminate/support": "^6.0|^7.0|^8.0|^9.0|^10.0"
+        "illuminate/support": "^7.0|^8.0|^9.0|^10.0"
     },
-    "repositories":[
-        {
-            "type": "vcs",
-            "url": "git@github.com:liksoft/drewlabs-php-contracts.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:liksoft/drewlabs-php-core-helpers.git"
-        }
-    ],    
     "suggest": {
         "predis/predis": "Required to use the redis cache provider.",
         "ext/memcached": "Required to use the memcached provider.",
         "drewlabs/net": "Required to ping available servers ^0.1.0"
     },
     "config": {
+        "optimize-autoloader": true,
         "sort-packages": true
     },
     "extra": {

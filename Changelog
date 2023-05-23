@@ -1,30 +1,18 @@
 # Changes
 
-## [v0.2.0] 20220315
-
-- Added drewlbabs/net library as requirement
-- Modify AuthServerNodesChecker to support drewlabs/net implementation instead of Support library implementation
-- Removes dependency to support library
-
-## [0.2.2] 2022-05-29
+## [0.2.0] 2023-05-23
 
 - Add user attributes validation function that validates data returned by authorization server
 - Added InvalidServerResponseException which is thrown when response attributes are not valid
 - Review User::validateAttributes() implementation removing check on accessToken property
-
-## [0.3.0] 2022-06-08
-
+- Added drewlbabs/net library as requirement
+- Modify AuthServerNodesChecker to support drewlabs/net implementation instead of Support library implementation
+- Removes dependency to support library
 - Renamed InvalidServerResponseException to ServerBadResponseException
 - Add a global variable to use to be used in configuration of guard name
 - Rename the method to configure the default guard from guard() to defaultGuards()
 - Added a UserFactory interface an a DefaultUserFactory implementation
 - Updated AuthenticatableProvider to use callable as cache provider and user factory classes
-
-## [0.3.9]
-
 - Review Array cache implementation details to fix issue with fread with 0 as parameter failed
-
-## [0.4.0] 2023-04-02
-
 - Replace http/client library with drewlabs/curl-rest-client implementation
 - Add breaking change to Authenticatable provider wich takes a host path instead of a client instance

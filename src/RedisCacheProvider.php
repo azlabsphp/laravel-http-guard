@@ -16,6 +16,7 @@ namespace Drewlabs\AuthHttpGuard;
 use Drewlabs\AuthHttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\AuthHttpGuard\Exceptions\AuthenticatableNotFoundException;
 use Drewlabs\Contracts\Auth\Authenticatable;
+use Drewlabs\Core\Helpers\ImmutableDateTime;
 use Predis\Client;
 
 class RedisCacheProvider implements AuthenticatableCacheProvider
@@ -47,7 +48,7 @@ class RedisCacheProvider implements AuthenticatableCacheProvider
             $this->client->del($id);
         }
         $expiresAt = $user instanceof User ? new \DateTimeImmutable($user->tokenExpiresAt()) : null;
-        $expires = $expiresAt ? drewlabs_core_datetime_secs_diff($expiresAt, drewlabs_core_datetime_now()) : null;
+        $expires = $expiresAt ? ImmutableDateTime::secsDiff($expiresAt, ImmutableDateTime::now()) : null;
         if ($expires && ($expires <= 0)) {
             return;
         }
