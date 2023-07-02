@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -55,8 +55,8 @@ trait AttributesAware
     {
         $type = $parameter->getType();
         if (
-            ($type instanceof \ReflectionNamedType && 'array' === $type->getName()) ||
-            !$parameter->hasType()
+            ($type instanceof \ReflectionNamedType && 'array' === $type->getName())
+            || !$parameter->hasType()
         ) {
             return;
         }

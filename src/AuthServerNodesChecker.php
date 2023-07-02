@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -97,7 +97,7 @@ class AuthServerNodesChecker
             $pingClient = new \Drewlabs\Net\Ping\Client($host, null, 640);
             $result = $pingClient->request(Str::contains($host, 'localhost') ? \Drewlabs\Net\Ping\Method::FSOCKOPEN : \Drewlabs\Net\Ping\Method::EXEC_BIN);
 
-            return false !== (bool) ($result->latency());
+            return false !== (bool) $result->latency();
         }
 
         return true;

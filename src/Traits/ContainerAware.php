@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -29,12 +29,12 @@ trait ContainerAware
             if ($context) {
                 return null === $abstract ? $context : $context->get($abstract);
             }
+
             return null === $abstract ? self::getContainerInstance() : self::getContainerInstance()->make($abstract);
         };
     }
 
     /**
-     * 
      * @return \Illuminate\Contracts\Container\Container
      */
     private static function getContainerInstance()

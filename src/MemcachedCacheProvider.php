@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard;
 
-use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
-use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Core\Helpers\ImmutableDateTime;
+use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
+use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 
 class MemcachedCacheProvider implements AuthenticatableCacheProvider
 {

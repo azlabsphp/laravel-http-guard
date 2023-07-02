@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -13,33 +13,31 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard\Contracts;
 
-use Drewlabs\HttpGuard\Exceptions\ServerException;
-use Drewlabs\HttpGuard\Exceptions\UnAuthorizedException;
 use Drewlabs\Contracts\Auth\Authenticatable;
-use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\Curl\REST\Exceptions\RequestException;
+use Drewlabs\HttpGuard\Exceptions\ServerException;
+use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
+use Drewlabs\HttpGuard\Exceptions\UnAuthorizedException;
 
 interface ApiTokenAuthenticatableProvider
 {
     /**
-     * Get authenticable instance for user provided token
-     * 
-     * @param string $token 
-     * @return null|Authenticatable 
-     * @throws TokenExpiresException 
-     * @throws UnAuthorizedException 
-     * @throws ServerException 
+     * Get authenticable instance for user provided token.
+     *
+     * @throws TokenExpiresException
+     * @throws UnAuthorizedException
+     * @throws ServerException
      */
     public function getByOAuthToken(string $token): ?Authenticatable;
 
     /**
      * Revoke the connected user auth token.
-     * 
-     * @param string $token 
-     * @return void 
-     * @throws UnAuthorizedException 
-     * @throws RequestException 
-     * @throws ServerException 
+     *
+     * @throws UnAuthorizedException
+     * @throws RequestException
+     * @throws ServerException
+     *
+     * @return void
      */
     public function revokeOAuthToken(string $token);
 }

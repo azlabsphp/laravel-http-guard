@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -16,11 +16,9 @@ namespace Drewlabs\HttpGuard\Exceptions;
 class TokenExpiresException extends \Exception
 {
     /**
-     * Creates class instance
-     * 
-     * @param string $token 
-     * @param int $statusCode 
-     * @return void 
+     * Creates class instance.
+     *
+     * @return void
      */
     public function __construct(string $token, int $statusCode = 401)
     {

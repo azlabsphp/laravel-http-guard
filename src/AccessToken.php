@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard;
 
-use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
-use Drewlabs\HttpGuard\Traits\AttributesAware;
-use Drewlabs\HttpGuard\Traits\ContainerAware;
 use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\Core\Helpers\ImmutableDateTime;
+use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
+use Drewlabs\HttpGuard\Traits\AttributesAware;
+use Drewlabs\HttpGuard\Traits\ContainerAware;
 
 class AccessToken implements Token
 {
@@ -26,9 +26,7 @@ class AccessToken implements Token
     use ContainerAware;
 
     /**
-     * Creates class instance
-     * 
-     * @param array $attributes 
+     * Creates class instance.
      */
     public function __construct(array $attributes = [])
     {
@@ -61,8 +59,8 @@ class AccessToken implements Token
     {
         $abilities = $this->abilities();
 
-        return \in_array('*', $abilities, true) ||
-            \array_key_exists($ability, array_flip($abilities));
+        return \in_array('*', $abilities, true)
+            || \array_key_exists($ability, array_flip($abilities));
     }
 
     public function cant($ability)

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -48,7 +48,7 @@ class ReadWriterTest extends TestCase
         $reader = ReadWriter::open(__DIR__.'/output/app.log', 'r');
         // Close the io reader
         $reader->close();
-        $this->assertEquals(false, $reader->read());
+        $this->assertFalse($reader->read());
     }
 
     public function test_write_to_closed_resource_return_false()
@@ -56,6 +56,6 @@ class ReadWriterTest extends TestCase
         $writer = ReadWriter::open(__DIR__.'/output/app.log', 'r');
         // Close the io reader
         $writer->close();
-        $this->assertEquals(false, $writer->write('My Text content...'));
+        $this->assertFalse($writer->write('My Text content...'));
     }
 }

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -49,17 +49,17 @@ class ReadWriter
 
     /**
      * Read data from the open file resource.
-     * 
+     *
      * **Note** Method returns false if was unable to read from
      * file resource because the resource was close or a read error
      * occurs
      *
      * @return string|false
      */
-    public function read(?int $length = null)
+    public function read(int $length = null)
     {
         // Case the read writer is not a resource, we simply return false
-        if (!is_resource($this->descriptor)) {
+        if (!\is_resource($this->descriptor)) {
             return false;
         }
 
@@ -76,13 +76,13 @@ class ReadWriter
      * **Note** Method returns false if was unable to write to
      * file resource because the resource was close or a write error
      * occurs
-     * 
+     *
      * @return int|false
      */
-    public function write(string $data, ?int $length = null)
+    public function write(string $data, int $length = null)
     {
         // Case the read writer is not a resource, we simply return false
-        if (!is_resource($this->descriptor)) {
+        if (!\is_resource($this->descriptor)) {
             return false;
         }
         $bytes = false;
@@ -101,7 +101,7 @@ class ReadWriter
      */
     public function close()
     {
-        if (null !== $this->descriptor && is_resource($this->descriptor)) {
+        if (null !== $this->descriptor && \is_resource($this->descriptor)) {
             fclose($this->descriptor);
             $this->descriptor = null;
         }

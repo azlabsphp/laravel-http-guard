@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -13,15 +13,15 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard;
 
+use Drewlabs\Contracts\Auth\Authenticatable;
+use Drewlabs\Contracts\Auth\AuthorizableInterface;
+use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Traits\AttributesAware;
 use Drewlabs\HttpGuard\Traits\Authenticatable as TraitsAuthenticatable;
 use Drewlabs\HttpGuard\Traits\Authorizable;
 use Drewlabs\HttpGuard\Traits\ContainerAware;
 use Drewlabs\HttpGuard\Traits\HasApiToken;
-use Drewlabs\Contracts\Auth\Authenticatable;
-use Drewlabs\Contracts\Auth\AuthorizableInterface;
-use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Illuminate\Contracts\Auth\Authenticatable as AuthAuthenticatable;
 
 class User implements Authenticatable, AuthorizableInterface, AuthAuthenticatable, HasApiTokens
@@ -49,7 +49,7 @@ class User implements Authenticatable, AuthorizableInterface, AuthAuthenticatabl
      */
     public function isVerified()
     {
-        return (bool) ($this->is_verified) || (bool) ($this->isVerified);
+        return (bool) $this->is_verified || (bool) $this->isVerified;
     }
 
     public function tokenExpires()

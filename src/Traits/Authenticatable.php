@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -52,7 +52,7 @@ trait Authenticatable
 
     public function authIdentifier()
     {
-        return (string) ($this->__get($this->authIdentifierName()));
+        return (string) $this->__get($this->authIdentifierName());
     }
 
     public function authPassword()

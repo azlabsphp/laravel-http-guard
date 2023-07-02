@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -13,13 +13,13 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard;
 
+use Drewlabs\Contracts\OAuth\HasApiTokens;
+use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\HttpGuard\Exceptions\UnAuthorizedException;
-use Drewlabs\Contracts\OAuth\HasApiTokens;
-use Drewlabs\Core\Helpers\Arr;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Http\Request;
 
@@ -65,18 +65,18 @@ class Guard
                         : $user;
                 }
             }
-        } catch (\InvalidArgumentException $e) {
-            // TODO : Throw new GuardNotFoundException
+        } catch (\Throwable $e) {
+            // We pass down if the default guard can't authenticate user to the http guard check
         }
         if ($token = $request->bearerToken()) {
             try {
                 return $this->provider->getByOAuthToken($token);
             } catch (\Exception $e) {
                 if (
-                    $e instanceof AuthenticatableNotFoundException ||
-                    $e instanceof TokenExpiresException ||
-                    $e instanceof UnAuthorizedException ||
-                    $e instanceof ServerBadResponseException
+                    $e instanceof AuthenticatableNotFoundException
+                    || $e instanceof TokenExpiresException
+                    || $e instanceof UnAuthorizedException
+                    || $e instanceof ServerBadResponseException
                 ) {
                     return null;
                 }

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -29,5 +29,5 @@ interface UserFactory
      *
      * @return \Illuminate\Contracts\Auth\Authenticatable|Authenticatable
      */
-    public function create(array $attributes = [], ?string $token = null);
+    public function create(array $attributes = [], string $token = null);
 }

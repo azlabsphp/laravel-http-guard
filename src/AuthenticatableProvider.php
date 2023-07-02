@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -13,18 +13,18 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard;
 
+use Drewlabs\Contracts\Auth\Authenticatable;
+use Drewlabs\Curl\REST\Client;
+use Drewlabs\Curl\REST\Exceptions\BadRequestException;
+use Drewlabs\Curl\REST\Exceptions\RequestException;
+use Drewlabs\Curl\REST\Response;
 use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\HttpGuard\Contracts\UserFactory;
 use Drewlabs\HttpGuard\Exceptions\ServerException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\HttpGuard\Exceptions\UnAuthorizedException;
-use Drewlabs\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as BaseAuthenticatable;
-use Drewlabs\Curl\REST\Client;
-use Drewlabs\Curl\REST\Exceptions\BadRequestException;
-use Drewlabs\Curl\REST\Exceptions\RequestException;
-use Drewlabs\Curl\REST\Response;
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 {
@@ -88,17 +88,18 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         if (null !== $userFactory) {
             $this->userFactory = $userFactory;
         }
+
         return $this;
     }
 
     /**
      * Revoke the connected user auth token.
-     * 
-     * @param string $token 
-     * @return void 
-     * @throws UnAuthorizedException 
-     * @throws RequestException 
-     * @throws ServerException 
+     *
+     * @throws UnAuthorizedException
+     * @throws RequestException
+     * @throws ServerException
+     *
+     * @return void
      */
     public function revokeOAuthToken(string $token)
     {
@@ -114,6 +115,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             if (401 === $response->getStatus()) {
                 throw new UnAuthorizedException($token, $response->getStatus());
             }
+
             return null;
         } catch (\Exception $e) {
             throw new ServerException($e->getMessage(), $e->getCode(), $e);
@@ -145,12 +147,14 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             if (401 === $e->getStatus()) {
                 throw new UnAuthorizedException($token, $e->getStatus());
             }
+
             return null;
         } catch (BadRequestException $e) {
             $response = $e->getResponse();
             if (401 === $response->getStatus()) {
                 throw new UnAuthorizedException($token, $response->getStatus());
             }
+
             return null;
         } catch (\Exception $e) {
             if (HttpGuardGlobals::usesCache()) {
@@ -164,7 +168,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     {
         $cacheProvider = $this->getCacheProvider();
         $user = $cacheProvider->read($token);
-        if (($user instanceof User) && ($user->tokenExpires())) {
+        if (($user instanceof User) && $user->tokenExpires()) {
             // Case the token has expired, we remove the authenticatable instance from cache
             $cacheProvider->delete($token);
             throw new TokenExpiresException($token);
@@ -186,14 +190,13 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     }
 
     /**
-     * 
-     * @param string $path 
-     * @return string 
+     * @return string
      */
     private function makeRequestURL(string $path)
     {
         $host = is_a($this->host, \Closure::class) ? ($this->host)() : $this->host;
-        return sprintf("%s/%s", rtrim($host ?? ''), ltrim($path ?? '', '/'));
+
+        return sprintf('%s/%s', rtrim($host ?? ''), ltrim($path ?? '', '/'));
     }
 
     /**

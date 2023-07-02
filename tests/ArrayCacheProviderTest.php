@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -11,12 +11,12 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-use Drewlabs\HttpGuard\ArrayCacheProvider;
-use Drewlabs\HttpGuard\HttpGuardGlobals;
-use Drewlabs\HttpGuard\User;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Core\Helpers\Rand;
 use Drewlabs\Core\Helpers\UUID;
+use Drewlabs\HttpGuard\ArrayCacheProvider;
+use Drewlabs\HttpGuard\HttpGuardGlobals;
+use Drewlabs\HttpGuard\User;
 use PHPUnit\Framework\TestCase;
 
 class ArrayCacheProviderTest extends TestCase

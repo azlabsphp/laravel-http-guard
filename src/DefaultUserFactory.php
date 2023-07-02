@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Drewlabs package.
+ * This file is part of the drewlabs namespace.
  *
  * (c) Sidoine Azandrew <azandrewdevelopper@gmail.com>
  *
@@ -13,15 +13,15 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard;
 
+use Drewlabs\Contracts\OAuth\HasApiTokens;
+use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\HttpGuard\Contracts\UserFactory;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Traits\AttributesAware;
-use Drewlabs\Contracts\OAuth\HasApiTokens;
-use Drewlabs\Core\Helpers\Arr;
 
 class DefaultUserFactory implements UserFactory
 {
-    public function create(array $attributes = [], ?string $token = null)
+    public function create(array $attributes = [], string $token = null)
     {
         $class = HttpGuardGlobals::authenticatableClass();
         if (!class_exists($class) || !$this->isAttributeAware($class)) {
@@ -58,7 +58,7 @@ class DefaultUserFactory implements UserFactory
 
     private function isAttributeAware($object)
     {
-        $object = \is_object($object) ? \get_class($object) : $object;
+        $object = \is_object($object) ? $object::class : $object;
         $isStatic = static function ($object, $method) {
             try {
                 return (new \ReflectionMethod($object, $method))->isStatic();
@@ -67,7 +67,7 @@ class DefaultUserFactory implements UserFactory
             }
         };
 
-        return \count(array_intersect([AttributesAware::class, \Drewlabs\Support\Traits\AttributesAware::class], drewlabs_class_recusive_uses($object))) > 0 ||
-            (method_exists($object, 'createFromAttributes') && $isStatic($object, 'createFromAttributes'));
+        return \count(array_intersect([AttributesAware::class, \Drewlabs\Support\Traits\AttributesAware::class], drewlabs_class_recusive_uses($object))) > 0
+            || (method_exists($object, 'createFromAttributes') && $isStatic($object, 'createFromAttributes'));
     }
 }
