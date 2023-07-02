@@ -15,6 +15,7 @@ namespace Drewlabs\HttpGuard;
 
 use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Core\Helpers\Arr;
+use Drewlabs\Core\Helpers\Reflector;
 use Drewlabs\HttpGuard\Contracts\UserFactory;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Traits\AttributesAware;
@@ -67,7 +68,7 @@ class DefaultUserFactory implements UserFactory
             }
         };
 
-        return \count(array_intersect([AttributesAware::class, \Drewlabs\Support\Traits\AttributesAware::class], drewlabs_class_recusive_uses($object))) > 0
+        return \count(array_intersect([AttributesAware::class, \Drewlabs\Support\Traits\AttributesAware::class], Reflector::usesRecursive($object))) > 0
             || (method_exists($object, 'createFromAttributes') && $isStatic($object, 'createFromAttributes'));
     }
 }
