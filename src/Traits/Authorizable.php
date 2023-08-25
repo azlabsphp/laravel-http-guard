@@ -21,14 +21,15 @@ use Illuminate\Contracts\Auth\Access\Gate;
  */
 trait Authorizable
 {
-    public function getAuthorizations()
+    public function getAuthorizations(): array
     {
-        return $this->authorizations;
+        return $this->authorizations ?? [];
     }
 
-    public function getAuthorizationGroups()
+    public function getAuthorizationGroups(): array
     {
-        return $this->roles;
+        // TODO : Change roles property or attribute name to groups
+        return $this->roles ?? [];
     }
 
     public function setAuthorizations(array $value = [])
@@ -38,6 +39,7 @@ trait Authorizable
 
     public function setAuthorizationGroups(array $value = [])
     {
+        // TODO : Change roles property or attribute name to groups
         $this->roles = $value;
     }
 

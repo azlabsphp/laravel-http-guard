@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Drewlabs\HttpGuard;
 
 use Drewlabs\Contracts\Auth\Authenticatable;
-use Drewlabs\Contracts\Auth\AuthorizableInterface;
+use Drewlabs\Contracts\Auth\AuthorizationsAware;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Traits\AttributesAware;
@@ -24,7 +24,7 @@ use Drewlabs\HttpGuard\Traits\ContainerAware;
 use Drewlabs\HttpGuard\Traits\HasApiToken;
 use Illuminate\Contracts\Auth\Authenticatable as AuthAuthenticatable;
 
-class User implements Authenticatable, AuthorizableInterface, AuthAuthenticatable, HasApiTokens
+class User implements Authenticatable, AuthorizationsAware, AuthAuthenticatable, HasApiTokens
 {
     use AttributesAware;
     use Authorizable;

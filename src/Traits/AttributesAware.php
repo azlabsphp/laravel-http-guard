@@ -24,12 +24,12 @@ trait AttributesAware
 
     public function __set(string $name, $value)
     {
-        Arr::set($this->attributes, $name, $value);
+        $this->setAttribute($name, $value);
     }
 
     public function __get($name)
     {
-        return Arr::get($this->attributes ?? [], $name, null);
+        return $this->getAttribute($name);
     }
 
     /**
@@ -103,5 +103,28 @@ trait AttributesAware
         $constructor->getClosure($object)->__invoke($attributes);
 
         return $object;
+    }
+
+    /**
+     * Set value for attibute with name `$name`
+     * 
+     * @param string $name 
+     * @param mixed $value 
+     * @return void 
+     */
+    private function setAttribute(string $name, $value)
+    {
+        Arr::set($this->attributes, $name, $value);
+    }
+
+    /**
+     * Get value for attibute with name `$name`
+     * 
+     * @param string $name 
+     * @return mixed 
+     */
+    private function getAttribute(string $name)
+    {
+        return Arr::get($this->attributes ?? [], $name, null);
     }
 }
