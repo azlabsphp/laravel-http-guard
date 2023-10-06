@@ -71,7 +71,13 @@ class AuthServerNodesChecker
         if (!$host) {
             throw new \RuntimeException('No auth server node available');
         }
+
         if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $host)) {
+            if (false !== strpos($host, ':')) {
+                $components = parse_url($host);
+                return sprintf("%s://%s%s", $components['scheme'] ?? 'http', $components['host'] ?? 'localhost', isset($components['port']) ?sprintf(":%s", $components['port']) : '');
+
+            }
             return 'http://'.gethostbyaddr($host);
         }
 
