@@ -65,6 +65,16 @@ trait Authenticatable
         return 'password';
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * Laravel 11 compatible getAuthPasswordName property definition
+     */
+    public function getAuthPasswordName()
+    {
+        return 'password';
+    }
+
     public function rememberToken($token = null)
     {
         if (null === $token) {

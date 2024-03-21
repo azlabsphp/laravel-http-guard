@@ -18,19 +18,19 @@ use Drewlabs\Contracts\Auth\AuthorizationsAware;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Traits\AttributesAware;
-use Drewlabs\HttpGuard\Traits\Authenticatable as TraitsAuthenticatable;
+use Drewlabs\HttpGuard\Traits\Authenticatable as AuthTrait;
 use Drewlabs\HttpGuard\Traits\Authorizable;
 use Drewlabs\HttpGuard\Traits\ContainerAware;
 use Drewlabs\HttpGuard\Traits\HasApiToken;
-use Illuminate\Contracts\Auth\Authenticatable as AuthAuthenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AbstractAuthenticatable;
 
-class User implements Authenticatable, AuthorizationsAware, AuthAuthenticatable, HasApiTokens
+class User implements Authenticatable, AuthorizationsAware, AbstractAuthenticatable, HasApiTokens
 {
     use AttributesAware;
     use Authorizable;
     use ContainerAware;
     use HasApiToken;
-    use TraitsAuthenticatable;
+    use AuthTrait;
 
     private function __construct(array $attributes = [])
     {
