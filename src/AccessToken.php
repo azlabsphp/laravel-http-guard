@@ -15,7 +15,7 @@ namespace Drewlabs\HttpGuard;
 
 use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\Arr;
-use Drewlabs\Core\Helpers\ImmutableDateTime;
+use Drewlabs\Core\Helpers\DateTime;
 use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\HttpGuard\Traits\AttributesAware;
 use Drewlabs\HttpGuard\Traits\ContainerAware;
@@ -80,7 +80,7 @@ class AccessToken implements Token
             return true;
         }
 
-        return !ImmutableDateTime::isfuture(new \DateTimeImmutable($expiresAt));
+        return !DateTime::isfuture(new \DateTimeImmutable($expiresAt));
     }
 
     /**

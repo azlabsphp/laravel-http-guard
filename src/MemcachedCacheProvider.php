@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Drewlabs\HttpGuard;
 
 use Drewlabs\Contracts\Auth\Authenticatable;
-use Drewlabs\Core\Helpers\ImmutableDateTime;
+use Drewlabs\Core\Helpers\DateTime;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 
@@ -39,7 +39,7 @@ class MemcachedCacheProvider implements AuthenticatableCacheProvider
     public function write(string $id, Authenticatable $user)
     {
         $expiresAt = $user instanceof User ? new \DateTimeImmutable($user->tokenExpiresAt()) : null;
-        $expires = $expiresAt ? ImmutableDateTime::secsDiff($expiresAt, ImmutableDateTime::now()) : null;
+        $expires = $expiresAt ? DateTime::secsDiff($expiresAt, DateTime::now()) : null;
         if ($expires && ($expires <= 0)) {
             return;
         }
