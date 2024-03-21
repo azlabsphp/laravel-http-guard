@@ -77,7 +77,7 @@ class HttpGuardGlobals
     /**
      * @var string
      */
-    private static $AUTHENTICATABLE_CLASS = User::class;
+    private static $AUTHENTICATABLE = User::class;
 
     /**
      * Possible values array|redis|memcahed(not supported yet).
@@ -224,13 +224,13 @@ class HttpGuardGlobals
         return static::$DEFAULT_GUARDS;
     }
 
-    public static function authenticatableClass(string $authClass = null)
+    public static function authenticatable(string $name = null)
     {
-        if (null !== $authClass) {
-            static::$AUTHENTICATABLE_CLASS = $authClass;
+        if (null !== $name) {
+            static::$AUTHENTICATABLE = $name;
         }
 
-        return static::$AUTHENTICATABLE_CLASS;
+        return static::$AUTHENTICATABLE;
     }
 
     public static function useCacheDriver(string $driver)

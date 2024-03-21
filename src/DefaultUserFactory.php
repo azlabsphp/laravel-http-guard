@@ -24,7 +24,7 @@ class DefaultUserFactory implements UserFactory
 {
     public function create(array $attributes = [], string $token = null)
     {
-        $class = HttpGuardGlobals::authenticatableClass();
+        $class = HttpGuardGlobals::authenticatable();
         if (!class_exists($class) || !$this->isAttributeAware($class)) {
             throw new \Exception('Authenticatable class must define a createFromAttributes static method or use '.AttributesAware::class.' trait!');
         }
