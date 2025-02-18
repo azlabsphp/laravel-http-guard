@@ -22,7 +22,7 @@ use Drewlabs\HttpGuard\Traits\AttributesAware;
 
 class DefaultUserFactory implements UserFactory
 {
-    public function create(array $attributes = [], string $token = null)
+    public function create(array $attributes = [], ?string $token = null)
     {
         $class = HttpGuardGlobals::authenticatable();
         if (!class_exists($class) || !$this->isAttributeAware($class)) {

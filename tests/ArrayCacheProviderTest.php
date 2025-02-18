@@ -55,13 +55,13 @@ class ArrayCacheProviderTest extends TestCase
         $instance->write($id, $user);
 
         $this->assertInstanceOf(Authenticatable::class, $instance->read($id));
-        $this->assertEquals($user, $instance->read($id));
+        $this->assertSame($user, $instance->read($id));
     }
 
     public function test_read_non_existing_key_from_cache_returns_throws_exception()
     {
         $this->cleanup();
-        $this->expectException(\Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException::class);
+        $this->expectException(Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException::class);
         $instance = ArrayCacheProvider::load();
         $id = UUID::create();
         $this->assertNull($instance->read($id));
@@ -80,9 +80,9 @@ class ArrayCacheProviderTest extends TestCase
         $instance->write($id, $user);
         ArrayCacheProvider::dump($instance);
         $instance2 = ArrayCacheProvider::load();
-        $this->assertEquals(count($instance->getState()), count($instance2->getState()));
-        $this->assertEquals($instance->read($id)->getAuthUserName(), $instance->read($id)->getAuthUserName());
-        $this->assertEquals($instance->read($id)->authIdentifier(), $instance->read($id)->authIdentifier());
+        $this->assertSame(count($instance->getState()), count($instance2->getState()));
+        $this->assertSame($instance->read($id)->getAuthUserName(), $instance->read($id)->getAuthUserName());
+        $this->assertSame($instance->read($id)->authIdentifier(), $instance->read($id)->authIdentifier());
         $this->assertEquals($user, $instance2->read($id));
     }
 

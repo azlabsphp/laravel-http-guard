@@ -28,9 +28,9 @@ class User implements Authenticatable, AuthorizationsAware, AbstractAuthenticata
 {
     use AttributesAware;
     use Authorizable;
+    use AuthTrait;
     use ContainerAware;
     use HasApiToken;
-    use AuthTrait;
 
     private function __construct(array $attributes = [])
     {

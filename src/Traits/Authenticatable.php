@@ -67,7 +67,7 @@ trait Authenticatable
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * Laravel 11 compatible getAuthPasswordName property definition
      */
     public function getAuthPasswordName()

@@ -75,11 +75,13 @@ class AuthServerNodesChecker
         }
 
         if (preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $host)) {
-            if (false !== strpos($host, ':')) {
+            if (str_contains($host, ':')) {
                 $components = parse_url($host);
-                return sprintf("%s://%s%s", $components['scheme'] ?? 'http', $components['host'] ?? 'localhost', isset($components['port']) ?sprintf(":%s", $components['port']) : '');
+
+                return sprintf('%s://%s%s', $components['scheme'] ?? 'http', $components['host'] ?? 'localhost', isset($components['port']) ? sprintf(':%s', $components['port']) : '');
 
             }
+
             return 'http://'.gethostbyaddr($host);
         }
 
@@ -104,8 +106,10 @@ class AuthServerNodesChecker
         if (class_exists(Client::class)) {
             $client = new Client($host, null, 640);
             $result = $client->request(Str::contains($host, 'localhost') ? Method::FSOCKOPEN : Method::EXEC_BIN);
+
             return false !== (bool) $result->latency();
         }
+
         return true;
     }
 

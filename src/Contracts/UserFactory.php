@@ -29,5 +29,5 @@ interface UserFactory
      *
      * @return \Illuminate\Contracts\Auth\Authenticatable|Authenticatable
      */
-    public function create(array $attributes = [], string $token = null);
+    public function create(array $attributes = [], ?string $token = null);
 }

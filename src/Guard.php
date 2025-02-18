@@ -28,7 +28,7 @@ class Guard
     /**
      * The authentication factory implementation.
      *
-     * @var \Illuminate\Contracts\Auth\Factory
+     * @var AuthFactory
      */
     private $auth;
 

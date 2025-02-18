@@ -18,7 +18,7 @@ class ReadWriterTest extends TestCase
 {
     public function test_open_missing_file()
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         ReadWriter::open(__DIR__.'/app.log');
         $this->assertTrue(true);
     }

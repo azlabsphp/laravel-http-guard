@@ -138,7 +138,7 @@ class HttpGuardGlobals
     /**
      * @return string
      */
-    public static function userPath(string $path = null)
+    public static function userPath(?string $path = null)
     {
         if ($path) {
             static::$USER_PATH = $path;
@@ -150,7 +150,7 @@ class HttpGuardGlobals
     /**
      * @return string
      */
-    public static function revokePath(string $path = null)
+    public static function revokePath(?string $path = null)
     {
         if ($path) {
             static::$LOGOUT_PATH = $path;
@@ -162,7 +162,7 @@ class HttpGuardGlobals
     /**
      * @return bool
      */
-    public static function usesCache(bool $value = null)
+    public static function usesCache(?bool $value = null)
     {
         if (null !== $value) {
             static::$USE_CACHE = $value;
@@ -171,7 +171,7 @@ class HttpGuardGlobals
         return static::$USE_CACHE;
     }
 
-    public static function nodeServerCachePath(string $path = null)
+    public static function nodeServerCachePath(?string $path = null)
     {
         if (null !== $path) {
             static::$AVAILABLE_NODE_SERVER_CACHE_PATH = $path;
@@ -224,7 +224,7 @@ class HttpGuardGlobals
         return static::$DEFAULT_GUARDS;
     }
 
-    public static function authenticatable(string $name = null)
+    public static function authenticatable(?string $name = null)
     {
         if (null !== $name) {
             static::$AUTHENTICATABLE = $name;
@@ -243,7 +243,7 @@ class HttpGuardGlobals
         return static::$DEFAULT_CACHE_DRIVER;
     }
 
-    public static function forMemcached(array $config = null)
+    public static function forMemcached(?array $config = null)
     {
         if (\is_array($config) && !empty($config)) {
             static::$MEMCACHED_CONFIG = $config;
@@ -252,7 +252,7 @@ class HttpGuardGlobals
         return static::$MEMCACHED_CONFIG;
     }
 
-    public static function cachePrefix(string $prefix = null)
+    public static function cachePrefix(?string $prefix = null)
     {
         if (null !== $prefix) {
             static::$CACHE_PREFIX = $prefix;
@@ -261,7 +261,7 @@ class HttpGuardGlobals
         return static::$CACHE_PREFIX;
     }
 
-    public static function defaultAuthServerNode(string $host = null)
+    public static function defaultAuthServerNode(?string $host = null)
     {
         if (null !== $host) {
             static::$DEFAULT_AUTH_SERVER_NODE = $host;
@@ -275,7 +275,7 @@ class HttpGuardGlobals
      *
      * @return string
      */
-    public static function guard(string $name = null)
+    public static function guard(?string $name = null)
     {
         if (null !== $name) {
             static::$GUARD = $name;
@@ -289,7 +289,7 @@ class HttpGuardGlobals
      *
      * @return string
      */
-    public static function cachePath(string $path = null)
+    public static function cachePath(?string $path = null)
     {
         if (null !== $path) {
             self::$CACHE_PATH = $path;

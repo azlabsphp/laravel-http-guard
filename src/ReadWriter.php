@@ -56,7 +56,7 @@ class ReadWriter
      *
      * @return string|false
      */
-    public function read(int $length = null)
+    public function read(?int $length = null)
     {
         // Case the read writer is not a resource, we simply return false
         if (!\is_resource($this->descriptor)) {
@@ -79,7 +79,7 @@ class ReadWriter
      *
      * @return int|false
      */
-    public function write(string $data, int $length = null)
+    public function write(string $data, ?int $length = null)
     {
         // Case the read writer is not a resource, we simply return false
         if (!\is_resource($this->descriptor)) {

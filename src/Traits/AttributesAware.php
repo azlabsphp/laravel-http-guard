@@ -106,11 +106,11 @@ trait AttributesAware
     }
 
     /**
-     * Set value for attibute with name `$name`
-     * 
-     * @param string $name 
-     * @param mixed $value 
-     * @return void 
+     * Set value for attibute with name `$name`.
+     *
+     * @param mixed $value
+     *
+     * @return void
      */
     private function setAttribute(string $name, $value)
     {
@@ -118,10 +118,9 @@ trait AttributesAware
     }
 
     /**
-     * Get value for attibute with name `$name`
-     * 
-     * @param string $name 
-     * @return mixed 
+     * Get value for attibute with name `$name`.
+     *
+     * @return mixed
      */
     private function getAttribute(string $name)
     {
