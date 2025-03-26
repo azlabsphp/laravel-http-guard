@@ -69,7 +69,7 @@ class AccessToken implements Token
     }
 
     /**
-     * Checks whether the token has expire.
+     * checks whether the token has expire.
      *
      * @return bool
      */
@@ -84,7 +84,7 @@ class AccessToken implements Token
     }
 
     /**
-     * Returns the expiration date of the token.
+     * returns the expiration date of the token.
      *
      * @return ?string
      */

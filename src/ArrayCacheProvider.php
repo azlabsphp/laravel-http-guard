@@ -30,7 +30,7 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
     private $prefix;
 
     /**
-     * Creates the Array Cache provider instances.
+     * creates the Array Cache provider instances.
      *
      * @param array $state
      *

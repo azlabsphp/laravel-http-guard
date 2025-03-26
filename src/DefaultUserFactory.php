@@ -46,7 +46,7 @@ class DefaultUserFactory implements UserFactory
     }
 
     /**
-     * Determine if the tokenable model supports API tokens.
+     * checks if the tokenable model supports API tokens.
      *
      * @param mixed $tokenable
      *

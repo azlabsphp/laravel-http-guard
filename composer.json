@@ -16,6 +16,11 @@
             "Drewlabs\\HttpGuard\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Drewlabs\\HttpGuard\\Tests\\": "src/"
+        }
+    },
     "authors": [
         {
             "name": "azandrew-sidoine",

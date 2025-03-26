@@ -38,7 +38,7 @@ class Guard
     private $provider;
 
     /**
-     * Create a new guard instance.
+     * creates a new guard instance.
      *
      * @return self
      */
@@ -49,7 +49,7 @@ class Guard
     }
 
     /**
-     * Retrieve the authenticated user for the incoming request.
+     * retrieve the authenticated user for the incoming request.
      *
      * @param Request $request
      *
@@ -86,7 +86,7 @@ class Guard
     }
 
     /**
-     * Determine if the tokenable model supports API tokens.
+     * checks if the tokenable model supports API tokens.
      *
      * @param mixed $tokenable
      *

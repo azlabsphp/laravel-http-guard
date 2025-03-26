@@ -49,7 +49,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     private $userFactory;
 
     /**
-     * Creates authenticatable provider instance.
+     * creates authenticatable provider instance.
      *
      * @param AuthenticatableCacheProvider|\Closure $cacheProvider
      * @param UserFactory|\Closure|null             $userFactory
@@ -79,7 +79,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     }
 
     /**
-     * Set the user factory object to use to creates the authenticatable instance.
+     * set the user factory object to use to creates the authenticatable instance.
      *
      * @return self
      */
@@ -93,7 +93,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     }
 
     /**
-     * Revoke the connected user auth token.
+     * revokes the connected user auth token.
      *
      * @throws UnAuthorizedException
      * @throws RequestException
@@ -124,10 +124,10 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
     public function getByOAuthToken(string $token): ?Authenticatable
     {
-        // GET USER FROM CACHE IF AUTH SERVERS ARE NOT AVAILABLE
         if (HttpGuardGlobals::usesCache() && $this->useCache) {
             return $this->getAuthenticatableFromCache($token);
         }
+
         try {
             /**
              * @var Response
@@ -173,6 +173,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             $cacheProvider->delete($token);
             throw new TokenExpiresException($token);
         }
+        return $user;
     }
 
     /**
@@ -190,17 +191,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     }
 
     /**
-     * @return string
-     */
-    private function makeRequestURL(string $path)
-    {
-        $host = is_a($this->host, \Closure::class) ? ($this->host)() : $this->host;
-
-        return sprintf('%s/%s', rtrim($host ?? ''), ltrim($path ?? '', '/'));
-    }
-
-    /**
-     * Returns true if the $instance is instance of authenticatable class.
+     * returns true if the $instance is instance of authenticatable class.
      *
      * @param Authenticatable $instance
      *
@@ -209,5 +200,17 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     private function isAuthenticatable($instance)
     {
         return is_a($instance, BaseAuthenticatable::class, true) || is_a($instance, Authenticatable::class, true);
+    }
+
+    /**
+     * @internal
+     * 
+     * @return string
+     */
+    private function makeRequestURL(string $path)
+    {
+        $host = is_a($this->host, \Closure::class) ? ($this->host)() : $this->host;
+
+        return sprintf('%s/%s', rtrim($host ?? ''), ltrim($path ?? '', '/'));
     }
 }

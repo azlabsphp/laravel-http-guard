@@ -18,7 +18,7 @@ use Drewlabs\Contracts\OAuth\HasAbilities;
 class TransientToken implements HasAbilities
 {
     /**
-     * Determine if the token has a given ability.
+     * checks if the token has a given ability.
      *
      * @param string $ability
      *
