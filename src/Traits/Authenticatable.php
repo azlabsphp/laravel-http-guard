@@ -35,6 +35,7 @@ trait Authenticatable
         return $this->rememberToken();
     }
 
+    /** @param string $value */
     public function setRememberToken($value)
     {
         return $this->rememberToken($value);
@@ -81,20 +82,5 @@ trait Authenticatable
             return $this->__get($this->rememberTokenName());
         }
         $this->__set($this->rememberTokenName(), $token);
-    }
-
-    public function rememberTokenName()
-    {
-        return 'remember_token';
-    }
-
-    public function getAuthUserName()
-    {
-        return $this->username;
-    }
-
-    public function getUserDetails()
-    {
-        return $this->user_details;
     }
 }

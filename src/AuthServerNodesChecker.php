@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Drewlabs\HttpGuard;
 
 use Drewlabs\Core\Helpers\Str;
-use Drewlabs\Net\Ping\Client;
 use Drewlabs\Net\Ping\Method;
 
 class AuthServerNodesChecker
@@ -30,9 +29,7 @@ class AuthServerNodesChecker
     {
         $nodes = HttpGuardGlobals::hosts();
         if (!empty($nodes)) {
-            /**
-             * @var int
-             */
+            /** @var int|null */
             $primary = null;
             foreach ($nodes as $index => $node) {
                 if (true === $node['primary'] ?? false) {
@@ -40,13 +37,16 @@ class AuthServerNodesChecker
                     break;
                 }
             }
+
+            /** @var string|null */
+            $primaryNode = null;
+
             if (null !== $primary) {
                 $primaryNode = $nodes[$primary]['host'] ?? null;
                 unset($nodes[$primary]);
             }
 
-            // TODO : Use the default primary node if the Ping executor is not provided
-            if (!class_exists(Client::class)) {
+            if (!class_exists('\Drewlabs\Net\Ping\Client')) {
                 return static::writeCache(HttpGuardGlobals::nodeServerCachePath(), $primaryNode);
             }
 
@@ -57,7 +57,7 @@ class AuthServerNodesChecker
             foreach (static::querySecondaryNodes($nodes) as $node) {
                 return static::writeCache(HttpGuardGlobals::nodeServerCachePath(), $node);
             }
-            // Delete file if no node is present
+
             if (file_exists(HttpGuardGlobals::nodeServerCachePath())) {
                 @unlink(HttpGuardGlobals::nodeServerCachePath());
             }
@@ -79,7 +79,6 @@ class AuthServerNodesChecker
                 $components = parse_url($host);
 
                 return sprintf('%s://%s%s', $components['scheme'] ?? 'http', $components['host'] ?? 'localhost', isset($components['port']) ? sprintf(':%s', $components['port']) : '');
-
             }
 
             return 'http://'.gethostbyaddr($host);
@@ -103,10 +102,9 @@ class AuthServerNodesChecker
 
     private static function isHostAvailable(string $host)
     {
-        if (class_exists(Client::class)) {
-            $client = new Client($host, null, 640);
-            $result = $client->request(Str::contains($host, 'localhost') ? Method::FSOCKOPEN : Method::EXEC_BIN);
-
+        if (class_exists('\Drewlabs\Net\Ping\Client') && class_exists('\Drewlabs\Net\Ping\Method')) {
+            $client = new \Drewlabs\Net\Ping\Client($host, null, 640);
+            $result = $client->request(Str::contains($host, 'localhost') ? \Drewlabs\Net\Ping\Method::FSOCKOPEN : \Drewlabs\Net\Ping\Method::EXEC_BIN);
             return false !== (bool) $result->latency();
         }
 

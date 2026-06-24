@@ -16,21 +16,16 @@ namespace Drewlabs\HttpGuard\Traits;
 trait ContainerAware
 {
     /**
-     * @param mixed $abstract
+     * @template T
+     * 
+     * @param class-string<T> $abstract
      *
-     * @return \Closure
+     * @return \Closure($context = null): T|null
      */
-    public static function createResolver($abstract = null)
+    public static function createResolver($abstract)
     {
-        /*
-         * @return \Illuminate\Contracts\Container\Container|mixed
-         */
         return static function ($context = null) use ($abstract) {
-            if ($context) {
-                return null === $abstract ? $context : $context->get($abstract);
-            }
-
-            return null === $abstract ? self::getContainerInstance() : self::getContainerInstance()->make($abstract);
+            return $context ? $context->get($abstract) : self::getContainerInstance()->make($abstract);
         };
     }
 
@@ -39,6 +34,6 @@ trait ContainerAware
      */
     private static function getContainerInstance()
     {
-        return forward_static_call([\Illuminate\Container\Container::class, 'getInstance']);
+        return forward_static_call(['\Illuminate\Container\Container', 'getInstance']);
     }
 }

@@ -21,9 +21,7 @@ use Predis\Client;
 
 class RedisCacheProvider implements AuthenticatableCacheProvider
 {
-    /**
-     * @var Client
-     */
+    /** @var Client */
     private $client;
 
     /**

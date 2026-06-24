@@ -105,24 +105,23 @@ class ServiceProvider extends SupportServiceProvider
     {
         return new AuthenticatableProvider(
             static function () use ($app) {
-                // #region Set global cache configuration
-                $config = $app['config'];
+
+            $config = $app['config'];
                 HttpGuardGlobals::forMemcached($config['database.stores.memcached']);
 
-                // #endregion Set global cache configuration
                 return $app[CacheProviderFactory::class]->make(HttpGuardGlobals::defaultCacheDriver());
             },
             static function (array $attributes = [], ?string $token = null) use ($app) {
-                // #region Define user global configurations
                 $config = $app['config'];
                 $driver = $config->get('auth.guards.'.(HttpGuardGlobals::guard() ?? 'http').'.driver');
-                $model = $config->get('auth.providers.'.$driver.'.model');
-                HttpGuardGlobals::authenticatable($model ?? (class_exists(\Drewlabs\OAuthUser\User::class) ? Drewlabs\OAuthUser\User::class : User::class));
-                // #endregion Define user global configurations
-                $userFactory = null;
-                if ($app->bound(UserFactory::class)) {
-                    $userFactory = $app[UserFactory::class];
+
+                if (is_null($model = $config->get('auth.providers.'.$driver.'.model'))) {
+                    $model = class_exists('\Drewlabs\OAuthUser\User') ? '\Drewlabs\OAuthUser\User' : User::class;
                 }
+
+                HttpGuardGlobals::authenticatable($model);
+
+                $userFactory = $app->bound(UserFactory::class) ? $app[UserFactory::class] : null;
                 if (null === $userFactory) {
                     $userFactoryClass = $config->get('auth.providers.'.$driver.'.userFactory');
                     if ($userFactoryClass) {

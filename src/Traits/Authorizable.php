@@ -16,6 +16,8 @@ namespace Drewlabs\HttpGuard\Traits;
 use Illuminate\Contracts\Auth\Access\Gate;
 
 /**
+ * @mixin ContainerAware
+ * 
  * @property string[] $authorizations
  * @property string[] $roles
  */

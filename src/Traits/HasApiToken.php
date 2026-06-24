@@ -23,7 +23,7 @@ trait HasApiToken
     /**
      * Get the current access token being used by the user.
      *
-     * @return PersonalAccessToken|Token|null
+     * @return AccessToken|null
      */
     public function token()
     {
@@ -55,7 +55,7 @@ trait HasApiToken
      *
      * @param AccessToken $accessToken
      *
-     * @return self
+     * @return static
      */
     public function withAccessToken($accessToken)
     {
@@ -66,6 +66,6 @@ trait HasApiToken
 
     public function createToken(string $name, array $abilities = ['*'])
     {
-        throw new \LogicException('Current authenticatable instance cannot create a new token');
+        throw new \LogicException('current authenticatable instance cannot create a new token');
     }
 }

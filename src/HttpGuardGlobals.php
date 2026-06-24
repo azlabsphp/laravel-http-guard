@@ -54,6 +54,8 @@ class HttpGuardGlobals
 
     /**
      * Path serialized connected users are cached.
+     * 
+     * @var string
      */
     private static $CACHE_PATH = __DIR__.'/../cache/auth.dump';
 

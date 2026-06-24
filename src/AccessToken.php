@@ -36,11 +36,13 @@ class AccessToken implements Token
     public function revoke()
     {
         if ($this->authToken) {
+
             try {
                 $provider = static::createResolver(ApiTokenAuthenticatableProvider::class)() ?? new AuthenticatableProvider();
-            } catch (\Throwable $th) {
+            } catch (\Throwable $e) {
                 $provider = new AuthenticatableProvider();
             }
+
             $provider->revokeOAuthToken($this->authToken);
         }
     }
@@ -93,6 +95,12 @@ class AccessToken implements Token
         return $this->expires_at ?? ($this->expiresAt ?? null);
     }
 
+    /**
+     * set the authorization token property value
+     * 
+     * @param string $value 
+     * @return void 
+     */
     public function setAccessToken($value)
     {
         Arr::set($this->attributes, 'authToken', $value);
