@@ -37,8 +37,7 @@ class User implements Authenticatable, AuthorizationsAware, AbstractAuthenticata
         foreach ($attributes as $key => $value) {
             $this->attributes[$key] = $value;
         }
-        // After object attributes is filled, we check if required attributes are present
-        // on the object
+        
         $this->validateAttributes();
     }
 
