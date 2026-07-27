@@ -46,20 +46,22 @@ class MemcachedConnector
      */
     private function resolveInstance($connection, ?array $options = [], ?array $sasl = [])
     {
-        $memcached = new \Memcached($connection);
+        if (!class_exists(\Memcached::class)) {
+            throw new \RuntimeException('ext-memcached is required to use the memcached driver');
+        }
 
-        // Set auth parameters
+        $client = new \Memcached($connection);
+
         $sasl = array_values(array_filter($sasl ?? []));
         if (!empty($sasl)) {
-            $memcached->setOption(\Memcached::OPT_BINARY_PROTOCOL, true);
-            $memcached->setSaslAuthData(...$sasl);
+            $client->setOption(\Memcached::OPT_BINARY_PROTOCOL, true);
+            $client->setSaslAuthData(...$sasl);
         }
 
-        // Set options
         foreach ($options ?? [] as $key => $value) {
-            $memcached->setOption($value);
+            $client->setOption($value);
         }
 
-        return $memcached;
+        return $client;
     }
 }

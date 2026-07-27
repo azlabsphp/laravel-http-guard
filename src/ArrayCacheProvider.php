@@ -39,7 +39,7 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
     private function __construct($state = [])
     {
         $this->state = $state ?? [];
-        $this->prefix = HttpGuardGlobals::cachePrefix();
+        $this->prefix = Globals::cachePrefix();
     }
 
     public function write(string $id, Authenticatable $user)
@@ -85,10 +85,10 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
 
     public static function dump(self $cache)
     {
-        if (!HttpGuardGlobals::usesCache()) {
+        if (!Globals::usesCache()) {
             return;
         }
-        $path = HttpGuardGlobals::cachePath();
+        $path = Globals::cachePath();
         $dirname = \dirname($path);
         if (!is_dir($dirname)) {
             mkdir($dirname, 0777, true);
@@ -103,10 +103,10 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
      */
     public static function load()
     {
-        if (!HttpGuardGlobals::usesCache()) {
+        if (!Globals::usesCache()) {
             return new self();
         }
-        if (!file_exists($path = HttpGuardGlobals::cachePath())) {
+        if (!file_exists($path = Globals::cachePath())) {
             return new self();
         }
 

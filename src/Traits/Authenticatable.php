@@ -13,13 +13,12 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard\Traits;
 
+
+/**
+ * @mixin AttributesAware
+ */
 trait Authenticatable
 {
-    public function getAuthIdentifierName()
-    {
-        return $this->authIdentifierName();
-    }
-
     public function getAuthIdentifier()
     {
         return $this->authIdentifier();
@@ -35,52 +34,30 @@ trait Authenticatable
         return $this->rememberToken();
     }
 
-    /** @param string $value */
+    /** 
+     * @param string $value
+     */
     public function setRememberToken($value)
     {
         return $this->rememberToken($value);
     }
 
-    public function getRememberTokenName()
-    {
-        return $this->rememberTokenName();
-    }
-
-    public function authIdentifierName()
-    {
-        return 'id';
-    }
-
     public function authIdentifier()
     {
-        return (string) $this->__get($this->authIdentifierName());
+        return (string) $this->getAttribute($this->authIdentifierName());
     }
 
     public function authPassword()
     {
-        return $this->__get($this->authPasswordName());
-    }
-
-    public function authPasswordName()
-    {
-        return 'password';
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * Laravel 11 compatible getAuthPasswordName property definition
-     */
-    public function getAuthPasswordName()
-    {
-        return 'password';
+        return $this->getAttribute($this->authPasswordName());
     }
 
     public function rememberToken($token = null)
     {
         if (null === $token) {
-            return $this->__get($this->rememberTokenName());
+            return $this->getAttribute($this->rememberTokenName());
         }
-        $this->__set($this->rememberTokenName(), $token);
+
+        $this->setAttribute($this->rememberTokenName(), $token);
     }
 }

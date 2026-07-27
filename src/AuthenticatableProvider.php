@@ -20,10 +20,10 @@ use Drewlabs\Curl\REST\Exceptions\RequestException;
 use Drewlabs\Curl\REST\Response;
 use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
-use Drewlabs\HttpGuard\Contracts\UserFactory;
+use Drewlabs\HttpGuard\Contracts\UserFactory as AbstractUserFactory;
 use Drewlabs\HttpGuard\Exceptions\ServerException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
-use Drewlabs\HttpGuard\Exceptions\UnAuthorizedException;
+use Drewlabs\HttpGuard\Exceptions\AuthorizationException;
 use Illuminate\Contracts\Auth\Authenticatable as BaseAuthenticatable;
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
@@ -52,7 +52,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
      * creates authenticatable provider instance.
      *
      * @param AuthenticatableCacheProvider|\Closure $cacheProvider
-     * @param UserFactory|\Closure|null             $userFactory
+     * @param AbstractUserFactory|\Closure|null             $userFactory
      * @param string|\Closure|null                  $host
      *
      * @return static
@@ -60,10 +60,10 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     public function __construct($cacheProvider = null, $userFactory = null, $host = null)
     {
         try {
-            $this->userFactory = $userFactory ?? new DefaultUserFactory();
+            $this->userFactory = $userFactory ?? new UserFactory;
             $this->cacheProvider = $cacheProvider ?? ArrayCacheProvider::load();
             $this->host = $host ?? static function () {
-                return AuthServerNodesChecker::getAuthServerNode();
+                return AuthServers::getPrimaryServer();
             };
         } catch (\RuntimeException $e) {
             $this->useCache = true;
@@ -95,7 +95,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     /**
      * revokes the connected user auth token.
      *
-     * @throws UnAuthorizedException
+     * @throws AuthorizationException
      * @throws RequestException
      * @throws ServerException
      *
@@ -104,16 +104,16 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     public function revokeOAuthToken(string $token)
     {
         try {
-            Client::new()->withBearerToken($token)->get($this->makeRequestURL(HttpGuardGlobals::revokePath()));
+            Client::new()->withBearerToken($token)->get($this->makeRequestURL(Globals::revokeTokenPath()));
         } catch (RequestException $e) {
             if (401 === $e->getStatus()) {
-                throw new UnAuthorizedException($token, $e->getStatus());
+                throw new AuthorizationException($token, $e->getStatus());
             }
             throw $e;
         } catch (BadRequestException $e) {
             $response = $e->getResponse();
             if (401 === $response->getStatus()) {
-                throw new UnAuthorizedException($token, $response->getStatus());
+                throw new AuthorizationException($token, $response->getStatus());
             }
 
             return null;
@@ -124,40 +124,36 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
     public function getByOAuthToken(string $token): ?Authenticatable
     {
-        if (HttpGuardGlobals::usesCache() && $this->useCache) {
+        if (Globals::usesCache() && $this->useCache) {
             return $this->getAuthenticatableFromCache($token);
         }
 
         try {
-            /**
-             * @var Response
-             */
-            $response = Client::new()->withBearerToken($token)->get($this->makeRequestURL(HttpGuardGlobals::userPath()));
-            // We call the user factory create() method to build the current user from the
-            // response body of the HTTP request
+            /** @var Response */
+            $response = Client::new()->withBearerToken($token)->get($this->makeRequestURL(Globals::userPath()));
             $user = \is_callable($this->userFactory) ?
                 ($this->userFactory)($response->getBody(), $token)
                 : $this->userFactory->create($response->getBody(), $token);
-            if (HttpGuardGlobals::usesCache() && $this->isAuthenticatable($user)) {
+            if (Globals::usesCache() && $this->isAuthenticatable($user)) {
                 $this->getCacheProvider()->write($token, $user);
             }
 
             return $user;
         } catch (RequestException $e) {
             if (401 === $e->getStatus()) {
-                throw new UnAuthorizedException($token, $e->getStatus());
+                throw new AuthorizationException($token, $e->getStatus());
             }
 
             return null;
         } catch (BadRequestException $e) {
             $response = $e->getResponse();
             if (401 === $response->getStatus()) {
-                throw new UnAuthorizedException($token, $response->getStatus());
+                throw new AuthorizationException($token, $response->getStatus());
             }
 
             return null;
         } catch (\Exception $e) {
-            if (HttpGuardGlobals::usesCache()) {
+            if (Globals::usesCache()) {
                 return $this->getAuthenticatableFromCache($token);
             }
             throw new ServerException($e->getMessage(), $e->getCode(), $e);
@@ -169,7 +165,6 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         $cacheProvider = $this->getCacheProvider();
         $user = $cacheProvider->read($token);
         if (($user instanceof User) && $user->tokenExpires()) {
-            // Case the token has expired, we remove the authenticatable instance from cache
             $cacheProvider->delete($token);
             throw new TokenExpiresException($token);
         }
@@ -182,8 +177,6 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     public function getCacheProvider()
     {
         if (is_a($this->cacheProvider, \Closure::class)) {
-            // We resolve the instance from the closure so that the next calls
-            // uses the provideded instance
             $this->cacheProvider = ($this->cacheProvider)();
         }
 

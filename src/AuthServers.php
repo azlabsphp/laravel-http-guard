@@ -14,20 +14,23 @@ declare(strict_types=1);
 namespace Drewlabs\HttpGuard;
 
 use Drewlabs\Core\Helpers\Str;
-use Drewlabs\Net\Ping\Method;
 
-class AuthServerNodesChecker
+
+/**
+ * @internal
+ */
+final class AuthServers
 {
     public static function setClusterAvailableNodeIfMissing()
     {
-        if (!file_exists(HttpGuardGlobals::nodeServerCachePath())) {
+        if (!file_exists(Globals::nodesCachePath())) {
             static::setAvailableNode();
         }
     }
 
     public static function setAvailableNode()
     {
-        $nodes = HttpGuardGlobals::hosts();
+        $nodes = Globals::hosts();
         if (!empty($nodes)) {
             /** @var int|null */
             $primary = null;
@@ -47,28 +50,28 @@ class AuthServerNodesChecker
             }
 
             if (!class_exists('\Drewlabs\Net\Ping\Client')) {
-                return static::writeCache(HttpGuardGlobals::nodeServerCachePath(), $primaryNode);
+                return static::writeCache(Globals::nodesCachePath(), $primaryNode);
             }
 
-            if ($primaryNode && static::isHostAvailable($primaryNode)) {
-                return static::writeCache(HttpGuardGlobals::nodeServerCachePath(), $primaryNode);
+            if ($primaryNode && static::isAvailable($primaryNode)) {
+                return static::writeCache(Globals::nodesCachePath(), $primaryNode);
             }
 
-            foreach (static::querySecondaryNodes($nodes) as $node) {
-                return static::writeCache(HttpGuardGlobals::nodeServerCachePath(), $node);
+            foreach (static::getAvailableSecondaryServers($nodes) as $node) {
+                return static::writeCache(Globals::nodesCachePath(), $node);
             }
 
-            if (file_exists(HttpGuardGlobals::nodeServerCachePath())) {
-                @unlink(HttpGuardGlobals::nodeServerCachePath());
+            if (file_exists(Globals::nodesCachePath())) {
+                @unlink(Globals::nodesCachePath());
             }
         }
     }
 
-    public static function getAuthServerNode()
+    public static function getPrimaryServer()
     {
-        $host = @file_get_contents(HttpGuardGlobals::nodeServerCachePath());
+        $host = @file_get_contents(Globals::nodesCachePath());
         if (false === $host) {
-            $host = HttpGuardGlobals::defaultAuthServerNode();
+            $host = Globals::primaryServer();
         }
         if (!$host) {
             throw new \RuntimeException('No auth server node available');
@@ -90,17 +93,17 @@ class AuthServerNodesChecker
     /**
      * @return \Generator<int, mixed, mixed, void>
      */
-    private static function querySecondaryNodes(array $nodes)
+    private static function getAvailableSecondaryServers(array $nodes)
     {
         foreach ($nodes as $node) {
-            if (($host = $node['host'] ?? null) && static::isHostAvailable($host)) {
+            if (($host = $node['host'] ?? null) && static::isAvailable($host)) {
                 yield $host;
                 break;
             }
         }
     }
 
-    private static function isHostAvailable(string $host)
+    private static function isAvailable(string $host)
     {
         if (class_exists('\Drewlabs\Net\Ping\Client') && class_exists('\Drewlabs\Net\Ping\Method')) {
             $client = new \Drewlabs\Net\Ping\Client($host, null, 640);

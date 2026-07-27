@@ -19,7 +19,7 @@ use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
-use Drewlabs\HttpGuard\Exceptions\UnAuthorizedException;
+use Drewlabs\HttpGuard\Exceptions\AuthorizationException;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Http\Request;
 
@@ -58,30 +58,26 @@ class Guard
     public function __invoke($request)
     {
         try {
-            foreach (Arr::wrap(HttpGuardGlobals::defaultGuards()) as $guard) {
+            foreach (Arr::wrap(Globals::defaultGuards()) as $guard) {
                 if ($user = $this->auth->guard($guard)->user()) {
-                    return $this->supportsTokens($user)
-                        ? $user->withAccessToken(new TransientToken())
-                        : $user;
+                    return $this->supportsTokens($user) ? $this->castAsHasApiTokens($user)->withAccessToken(new TransientToken()) : $user;
                 }
             }
         } catch (\Throwable $e) {
-            // We pass down if the default guard can't authenticate user to the http guard check
         }
-        if ($token = $request->bearerToken()) {
-            try {
-                return $this->provider->getByOAuthToken($token);
-            } catch (\Exception $e) {
-                if (
-                    $e instanceof AuthenticatableNotFoundException
-                    || $e instanceof TokenExpiresException
-                    || $e instanceof UnAuthorizedException
-                    || $e instanceof ServerBadResponseException
-                ) {
-                    return null;
-                }
-                throw $e;
+
+        if (!$token = $request->bearerToken()) {
+            return null;
+        }
+
+
+        try {
+            return $this->provider->getByOAuthToken($token);
+        } catch (\Exception $e) {
+            if ($e instanceof AuthenticatableNotFoundException || $e instanceof TokenExpiresException || $e instanceof AuthorizationException || $e instanceof ServerBadResponseException) {
+                return null;
             }
+            throw $e;
         }
     }
 
@@ -95,5 +91,19 @@ class Guard
     protected function supportsTokens($tokenable = null)
     {
         return $tokenable instanceof HasApiTokens || method_exists($tokenable, 'withAccessToken');
+    }
+
+
+    /**
+     * 
+     * @template T
+     * 
+     * @param T $user
+     * 
+     * @return HasApiTokens 
+     */
+    private function castAsHasApiTokens($user)
+    {
+        return $user;
     }
 }

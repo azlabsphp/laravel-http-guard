@@ -34,6 +34,20 @@ trait AttributesAware
     }
 
     /**
+     * add a list of attribute to the curent instance
+     * 
+     * @param array $values
+     * 
+     * @return static 
+     */
+    public function withAttributes(array $values)
+    {
+        $this->attributes = array_merge($this->attributes, $values);
+
+        return $this;
+    }
+
+    /**
      * @return mixed
      */
     public static function createFromAttributes(array $attributes)
@@ -96,11 +110,16 @@ trait AttributesAware
         if (1 !== \count($parameters)) {
             static::validateConstructorLeastParameters(\array_slice($parameters, 1));
         }
-        $constructor->setAccessible(true);
         $object = $reflector->newInstanceWithoutConstructor();
         $constructor->getClosure($object)->__invoke($attributes);
 
         return $object;
+    }
+
+
+    private function setAttributes(array $values)
+    {
+        $this->attributes = $values;
     }
 
     /**

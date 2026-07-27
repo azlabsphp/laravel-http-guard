@@ -38,8 +38,8 @@ class ServiceProvider extends SupportServiceProvider
         // #region Declares or defines the auth cache and server node cache paths
         $cacheDir = \DIRECTORY_SEPARATOR.'http-guard'.\DIRECTORY_SEPARATOR.'cache';
         if (is_dir($this->app->storagePath()) && (null !== ($cacheDirPath = $this->makeDirectory(sprintf('%s%s', rtrim($this->app->storagePath(), \DIRECTORY_SEPARATOR), $cacheDir))))) {
-            HttpGuardGlobals::cachePath($cacheDirPath.\DIRECTORY_SEPARATOR.'auth.dump');
-            HttpGuardGlobals::nodeServerCachePath($cacheDirPath.\DIRECTORY_SEPARATOR.'node.sock');
+            Globals::cachePath($cacheDirPath.\DIRECTORY_SEPARATOR.'auth.dump');
+            Globals::nodesCachePath($cacheDirPath.\DIRECTORY_SEPARATOR.'node.sock');
         }
         // #endregion Declares or defines the auth cache and server node cache paths
         if (!$this->app->runningInConsole()) {
@@ -51,7 +51,7 @@ class ServiceProvider extends SupportServiceProvider
     {
         $this->app->bind(ApiTokenAuthenticatableProvider::class, function ($app) {
             $config = $app['config'];
-            $factory = $config->get('auth.providers.'.$config->get('auth.guards.'.(HttpGuardGlobals::guard() ?? 'http').'.driver').'.factory');
+            $factory = $config->get('auth.providers.'.$config->get('auth.guards.'.(Globals::guard() ?? 'http').'.driver').'.factory');
             if (null === $factory || !\is_callable($factory)) {
                 return $this->createAuthenticatableProvider($app);
             }
@@ -63,18 +63,19 @@ class ServiceProvider extends SupportServiceProvider
     /**
      * Register the guard.
      *
+     * @param \Illuminate\Contracts\Foundation\Application $app
      * @param \Illuminate\Contracts\Auth\Factory $auth
      *
      * @return RequestGuard
      */
     private function createGuardInstance($app, $auth)
     {
-        return new RequestGuard(new Guard($auth, $app[ApiTokenAuthenticatableProvider::class]), $app['request'], null);
+        return new RequestGuard(new Guard($auth, $app->make(ApiTokenAuthenticatableProvider::class)), $app->make('request'), null);
     }
 
     private function initializeAuthServerNodeChecker()
     {
-        AuthServerNodesChecker::setClusterAvailableNodeIfMissing();
+        AuthServers::setClusterAvailableNodeIfMissing();
     }
 
     /**
@@ -107,19 +108,19 @@ class ServiceProvider extends SupportServiceProvider
             static function () use ($app) {
 
             $config = $app['config'];
-                HttpGuardGlobals::forMemcached($config['database.stores.memcached']);
+                Globals::forMemcached($config['database.stores.memcached']);
 
-                return $app[CacheProviderFactory::class]->make(HttpGuardGlobals::defaultCacheDriver());
+                return $app[CacheProviderFactory::class]->make(Globals::getCacheDriver());
             },
             static function (array $attributes = [], ?string $token = null) use ($app) {
                 $config = $app['config'];
-                $driver = $config->get('auth.guards.'.(HttpGuardGlobals::guard() ?? 'http').'.driver');
+                $driver = $config->get('auth.guards.'.(Globals::guard() ?? 'http').'.driver');
 
                 if (is_null($model = $config->get('auth.providers.'.$driver.'.model'))) {
                     $model = class_exists('\Drewlabs\OAuthUser\User') ? '\Drewlabs\OAuthUser\User' : User::class;
                 }
 
-                HttpGuardGlobals::authenticatable($model);
+                Globals::authenticatable($model);
 
                 $userFactory = $app->bound(UserFactory::class) ? $app[UserFactory::class] : null;
                 if (null === $userFactory) {
@@ -139,11 +140,11 @@ class ServiceProvider extends SupportServiceProvider
             },
             static function () use ($app) {
                 $config = $app['config'];
-                $driver = $config->get('auth.guards.'.(HttpGuardGlobals::guard() ?? 'http').'.driver');
-                HttpGuardGlobals::defaultAuthServerNode($config->get('auth.providers.'.$driver.'.hosts.default'));
-                HttpGuardGlobals::hosts($config->get('auth.providers.'.$driver.'.hosts.cluster', []));
+                $driver = $config->get('auth.guards.'.(Globals::guard() ?? 'http').'.driver');
+                Globals::primaryServer($config->get('auth.providers.'.$driver.'.hosts.default'));
+                Globals::hosts($config->get('auth.providers.'.$driver.'.hosts.cluster', []));
 
-                return AuthServerNodesChecker::getAuthServerNode();
+                return AuthServers::getPrimaryServer();
             }
         );
     }

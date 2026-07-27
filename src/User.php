@@ -37,6 +37,7 @@ class User implements Authenticatable, AuthorizationsAware, AbstractAuthenticata
         foreach ($attributes as $key => $value) {
             $this->attributes[$key] = $value;
         }
+
         $this->validateAttributes();
     }
 
@@ -66,19 +67,65 @@ class User implements Authenticatable, AuthorizationsAware, AbstractAuthenticata
 
     public function validateAttributes()
     {
-        $hasRequiredAttributes = null !== $this->getAuthIdentifier() && $this->isVerified() && null !== $this->getAuthUserName();
-        if (!$hasRequiredAttributes) {
+        $passes = null !== $this->getAuthIdentifier() && $this->isVerified() && null !== $this->getAuthUserName();
+        if (!$passes) {
             throw new ServerBadResponseException('missing required attributes');
         }
     }
 
+    public function getAuthIdentifierName()
+    {
+        return $this->authIdentifierName();
+    }
+
     public function rememberTokenName()
     {
-        return 'remember_token';
+        return Globals::rememberTokenProperty();
+    }
+
+    public function getRememberTokenName()
+    {
+        return $this->rememberTokenName();
+    }
+
+    public function authIdentifierName()
+    {
+        return Globals::userIdProperty();
+    }
+
+
+    public function authPasswordName()
+    {
+        return Globals::passwordProperty();
+    }
+
+    public function getAuthPasswordName()
+    {
+        return $this->authPasswordName();
     }
 
     public function getAuthUserName()
     {
-        return $this->username;
+        return $this->getAttribute(Globals::usernameProperty());
+    }
+
+    public function getAuthorizations(): array
+    {
+        return $this->getAttribute(Globals::authorizationsProperty()) ?? [];
+    }
+
+    public function getAuthorizationGroups(): array
+    {
+        return $this->getAttribute(Globals::groupsProperty()) ?? [];
+    }
+
+    public function setAuthorizations(array $value = [])
+    {
+        $this->setAttribute(Globals::authorizationsProperty(), $value);
+    }
+
+    public function setAuthorizationGroups(array $value = [])
+    {
+        $this->setAttribute(Globals::groupsProperty(), $value);
     }
 }

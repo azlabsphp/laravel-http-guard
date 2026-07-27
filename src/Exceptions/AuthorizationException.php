@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard\Exceptions;
 
-class UnAuthorizedException extends \Exception
+class AuthorizationException extends \Exception
 {
     /**
      * Creates class instance.

@@ -28,7 +28,7 @@ class CacheProviderFactory
             case 'redis':
                 return new RedisCacheProvider();
             case 'memcached':
-                $parameters = HttpGuardGlobals::forMemcached();
+                $parameters = Globals::forMemcached();
                 $memcached = (new MemcachedConnector())->connect(
                     $parameters['servers'] ?? [],
                     $parameters['persistent_id'] ?? null,

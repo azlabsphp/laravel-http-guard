@@ -13,64 +13,22 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard;
 
-use Drewlabs\Contracts\OAuth\HasApiTokens;
-use Drewlabs\Core\Helpers\Arr;
-use Drewlabs\Core\Helpers\Reflector;
-use Drewlabs\HttpGuard\Contracts\UserFactory;
-use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
-use Drewlabs\HttpGuard\Traits\AttributesAware;
+use Drewlabs\HttpGuard\Contracts\UserFactory as AbstractUserFactory;
 
-class DefaultUserFactory implements UserFactory
+/** @deprecated use `UserFactory` class instead */
+class DefaultUserFactory implements AbstractUserFactory
 {
+
+    /** @var UserFactory */
+    private $factory;
+
+    public function __construct()
+    {
+        $this->factory = new UserFactory;
+    }
+
     public function create(array $attributes = [], ?string $token = null)
     {
-        $class = HttpGuardGlobals::authenticatable();
-        if (!class_exists($class) || !$this->isAttributeAware($class)) {
-            throw new \Exception('Authenticatable class must define a createFromAttributes static method or use '.AttributesAware::class.' trait!');
-        }
-        $user = forward_static_call([$class, 'createFromAttributes'], Arr::except($attributes, ['accessToken']));
-        if ($this->supportsTokens($user)) {
-            /** @var AccessToken */
-            $accessToken = AccessToken::createFromAttributes($attributes['accessToken'] ?? []);
-            if (null === $accessToken) {
-                throw new ServerBadResponseException('Access token is required for authenticatable classes that supports token');
-            }
-            $accessToken->setAccessToken($token);
-            $user->withAccessToken($accessToken);
-        }
-
-        return $user;
-    }
-
-    /**
-     * checks if the tokenable model supports API tokens.
-     *
-     * @param mixed $tokenable
-     *
-     * @return bool
-     */
-    private function supportsTokens($tokenable = null)
-    {
-        return $tokenable instanceof HasApiTokens || (method_exists($tokenable, 'token') && method_exists($tokenable, 'withAccessToken'));
-    }
-
-    /**
-     * 
-     * @param mixed $object 
-     * @return bool 
-     */
-    private function isAttributeAware($object)
-    {
-        $object = \is_object($object) ? get_class($object) : $object;
-        $isStatic = static function ($object, $method) {
-            try {
-                return (new \ReflectionMethod($object, $method))->isStatic();
-            } catch (\ReflectionException $e) {
-                return false;
-            }
-        };
-
-        return \count(array_intersect([AttributesAware::class, '\Drewlabs\Support\Traits\AttributesAware'], Reflector::usesRecursive($object))) > 0
-            || (method_exists($object, 'createFromAttributes') && $isStatic($object, 'createFromAttributes'));
+        return $this->factory->create($attributes, $token);
     }
 }

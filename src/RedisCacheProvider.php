@@ -31,12 +31,8 @@ class RedisCacheProvider implements AuthenticatableCacheProvider
 
     public function __construct()
     {
-        try {
-            $this->client = new Client(HttpGuardGlobals::redis());
-        } catch (\Exception $e) {
-            throw new \RuntimeException($e->getMessage());
-        }
-        $this->prefix = HttpGuardGlobals::cachePrefix();
+        $this->client = new Client(Globals::redis());
+        $this->prefix = Globals::cachePrefix();
     }
 
     public function write(string $id, Authenticatable $user)

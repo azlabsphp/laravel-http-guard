@@ -290,9 +290,9 @@ class AuthServiceProvider extends ServiceProvider
     public function boot()
     {
         // Configure the Http-Guard library to use cache
-        \Drewlabs\HttpGuard\HttpGuardGlobals::usesCache(true);
+        \Drewlabs\HttpGuard\Global::usesCache(true);
         // Configure the http-guard library to use PHP 'memcached' storage as default driver
-        \Drewlabs\HttpGuard\HttpGuardGlobals::useCacheDriver('memcached');
+        \Drewlabs\HttpGuard\Global::useCacheDriver('memcached');
         // ...
     }
 }
@@ -309,12 +309,12 @@ Next you configure the library to use redis as cache provider as follow:
 
 ```php
     // Configure the Http-Guard library to use cache
-    \Drewlabs\HttpGuard\HttpGuardGlobals::usesCache(true);
+    \Drewlabs\HttpGuard\Global::usesCache(true);
     // Configure the http-guard library to use redis storage as default driver
-    \Drewlabs\HttpGuard\HttpGuardGlobals::useCacheDriver('redis');
+    \Drewlabs\HttpGuard\Global::useCacheDriver('redis');
 
     // Define the redis connection configuration as defined in predis documentation
-    \Drewlabs\HttpGuard\HttpGuardGlobals::forRedis([
+    \Drewlabs\HttpGuard\Global::forRedis([
             'scheme' => 'tcp',
             'host'   => '10.0.0.1',
             'port'   => 6379,
@@ -340,7 +340,7 @@ By default the guard implementation expect the identity web service to provide `
 ```php
 // app/AuthServiceProvider.php
 
-use Drewlabs\HttpGuard\HttpGuardGlobals;
+use Drewlabs\HttpGuard\Global;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -348,8 +348,8 @@ class AuthServiceProvider extends ServiceProvider
     public function boot()
     {
         // ...
-        HttpGuardGlobals::userPath('auth/v2/user'); // Set the api prefix to equal auth instead of api
-        HttpGuardGlobals::revokePath('auth/v2/logout');
+        Global::userPath('auth/v2/user'); // Set the api prefix to equal auth instead of api
+        Global::revokePath('auth/v2/logout');
     }
 }
 ```
@@ -361,7 +361,7 @@ By default the library assume the configured guard name is `http`. Depending on 
 ```php
 // app/AuthServiceProvider.php
 
-use Drewlabs\HttpGuard\HttpGuardGlobals;
+use Drewlabs\HttpGuard\Global;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -369,7 +369,7 @@ class AuthServiceProvider extends ServiceProvider
     public function boot()
     {
         // ...
-        HttpGuardGlobals::guard('api'); // Defines the guard name to be used by the library as `api`
+        Global::guard('api'); // Defines the guard name to be used by the library as `api`
     }
 }
 ```

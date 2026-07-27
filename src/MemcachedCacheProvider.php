@@ -23,15 +23,13 @@ class MemcachedCacheProvider implements AuthenticatableCacheProvider
     /** @var \Memcached */
     private $client;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     private $prefix;
 
     public function __construct(\Memcached $client)
     {
         $this->client = $client;
-        $this->prefix = HttpGuardGlobals::cachePrefix();
+        $this->prefix = Globals::cachePrefix();
     }
 
     public function write(string $id, Authenticatable $user)

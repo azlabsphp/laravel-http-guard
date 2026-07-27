@@ -18,7 +18,7 @@ use Drewlabs\Core\Helpers\Rand;
 use Drewlabs\Core\Helpers\UUID;
 use Drewlabs\HttpGuard\ArrayCacheProvider;
 use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
-use Drewlabs\HttpGuard\HttpGuardGlobals;
+use Drewlabs\HttpGuard\Globals;
 use Drewlabs\HttpGuard\User;
 use PHPUnit\Framework\TestCase;
 
@@ -75,8 +75,9 @@ class ArrayCacheProviderTest extends TestCase
         $this->cleanup();
         $instance = ArrayCacheProvider::load();
         $id = UUID::create();
+        Globals::usernameProperty('user_name');
         $user = User::createFromAttributes([
-            'username' => sprintf('USER%s', Rand::int(1000, 10000)),
+            'user_name' => sprintf('USER%s', Rand::int(1000, 10000)),
             'is_verified' => true,
             'id' => $id,
         ]);
@@ -87,11 +88,14 @@ class ArrayCacheProviderTest extends TestCase
         $this->assertSame($instance->read($id)->getAuthUserName(), $instance->read($id)->getAuthUserName());
         $this->assertSame($instance->read($id)->authIdentifier(), $instance->read($id)->authIdentifier());
         $this->assertEquals($user, $instance2->read($id));
+
+        // reset user name attribute to it default value
+        Globals::usernameProperty('username');
     }
 
     private function cleanup()
     {
-        if (is_file($path = HttpGuardGlobals::cachePath())) {
+        if (is_file($path = Globals::cachePath())) {
             unlink($path);
         }
     }

@@ -19,31 +19,10 @@ use Illuminate\Contracts\Auth\Access\Gate;
  * @mixin ContainerAware
  * 
  * @property string[] $authorizations
- * @property string[] $roles
+ * @property string[] $groups
  */
 trait Authorizable
 {
-    public function getAuthorizations(): array
-    {
-        return $this->authorizations ?? [];
-    }
-
-    public function getAuthorizationGroups(): array
-    {
-        // TODO : Change roles property or attribute name to groups
-        return $this->roles ?? [];
-    }
-
-    public function setAuthorizations(array $value = [])
-    {
-        $this->authorizations = $value;
-    }
-
-    public function setAuthorizationGroups(array $value = [])
-    {
-        // TODO : Change roles property or attribute name to groups
-        $this->roles = $value;
-    }
 
     /**
      * Determine if the entity has a given ability.
