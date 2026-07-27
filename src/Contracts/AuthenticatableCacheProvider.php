@@ -18,7 +18,7 @@ use Drewlabs\Contracts\Auth\Authenticatable;
 interface AuthenticatableCacheProvider
 {
     /**
-     * Write the authenticatable data to cache.
+     * write the authenticatable data to cache.
      *
      * @return mixed
      */

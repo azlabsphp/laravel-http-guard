@@ -24,15 +24,20 @@ class RedisCacheProvider implements AuthenticatableCacheProvider
     /** @var Client */
     private $client;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     private $prefix;
 
-    public function __construct()
+    /**
+     * creates a redis cache provider instance
+     * 
+     * @param array $options
+     * 
+     * @return void 
+     */
+    public function __construct(array $options)
     {
-        $this->client = new Client(Globals::redis());
-        $this->prefix = Globals::cachePrefix();
+        $this->client = new Client($options);
+        $this->prefix = $options['cache_prefix'] ?? 'http_guard_';
     }
 
     public function write(string $id, Authenticatable $user)

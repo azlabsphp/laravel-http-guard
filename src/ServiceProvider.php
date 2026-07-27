@@ -16,6 +16,7 @@ namespace Drewlabs\HttpGuard;
 use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\HttpGuard\Contracts\UserFactory;
 use Illuminate\Auth\RequestGuard;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider as SupportServiceProvider;
 
@@ -35,13 +36,7 @@ class ServiceProvider extends SupportServiceProvider
                 });
             });
         });
-        // #region Declares or defines the auth cache and server node cache paths
-        $cacheDir = \DIRECTORY_SEPARATOR.'http-guard'.\DIRECTORY_SEPARATOR.'cache';
-        if (is_dir($this->app->storagePath()) && (null !== ($cacheDirPath = $this->makeDirectory(sprintf('%s%s', rtrim($this->app->storagePath(), \DIRECTORY_SEPARATOR), $cacheDir))))) {
-            Globals::cachePath($cacheDirPath.\DIRECTORY_SEPARATOR.'auth.dump');
-            Globals::nodesCachePath($cacheDirPath.\DIRECTORY_SEPARATOR.'node.sock');
-        }
-        // #endregion Declares or defines the auth cache and server node cache paths
+
         if (!$this->app->runningInConsole()) {
             $this->initializeAuthServerNodeChecker();
         }
@@ -50,8 +45,7 @@ class ServiceProvider extends SupportServiceProvider
     public function register()
     {
         $this->app->bind(ApiTokenAuthenticatableProvider::class, function ($app) {
-            $config = $app['config'];
-            $factory = $config->get('auth.providers.'.$config->get('auth.guards.'.(Globals::guard() ?? 'http').'.driver').'.factory');
+            $factory = $app->make('config')->config->get('auth.providers.' . $config->get('auth.guards.http.driver') . '.factory');
             if (null === $factory || !\is_callable($factory)) {
                 return $this->createAuthenticatableProvider($app);
             }
@@ -73,15 +67,17 @@ class ServiceProvider extends SupportServiceProvider
         return new RequestGuard(new Guard($auth, $app->make(ApiTokenAuthenticatableProvider::class)), $app->make('request'), null);
     }
 
-    private function initializeAuthServerNodeChecker()
+    private function initializeAuthServerNodeChecker(Repository $config)
     {
+        $driver = $config->get('auth.guards.http.driver');
+        $cluster = $config->get('auth.providers.' . $driver . '.hosts.cluster', []);
         AuthServers::setClusterAvailableNodeIfMissing();
     }
 
     /**
      * Creates directory if exists.
      *
-     * @return string|null
+     * @return string
      */
     private function makeDirectory(string $dir)
     {
@@ -92,7 +88,7 @@ class ServiceProvider extends SupportServiceProvider
             return $dir;
         }
 
-        return null;
+        return $dir;
     }
 
     /**
@@ -104,19 +100,35 @@ class ServiceProvider extends SupportServiceProvider
      */
     private function createAuthenticatableProvider($app)
     {
+        $baseDirectory = \DIRECTORY_SEPARATOR . 'http-guard' . \DIRECTORY_SEPARATOR . 'cache';
+        $dir = $this->makeDirectory(sprintf('%s%s', rtrim($this->app->storagePath(), \DIRECTORY_SEPARATOR), $baseDirectory));
+        $path = $dir . \DIRECTORY_SEPARATOR . 'auth.dump';
+        $serversPath = $dir . \DIRECTORY_SEPARATOR . 'node.sock';
+
         return new AuthenticatableProvider(
-            static function () use ($app) {
+            static function () use ($app, $path): mixed {
+                switch (strtolower($driver)) {
+                    case 'array':
+                        return ArrayCacheProvider::load($path);
+                    case 'redis':
+                        return new RedisCacheProvider($options);
+                    case 'memcached':
+                        $memcached = (new MemcachedConnector())->connect(
+                            $options['servers'] ?? [],
+                            $options['persistent_id'] ?? null,
+                            $options['options'] ?? [],
+                            $options['sasl'] ?? []
+                        );
 
-            $config = $app['config'];
-                Globals::forMemcached($config['database.stores.memcached']);
-
-                return $app[CacheProviderFactory::class]->make(Globals::getCacheDriver());
+                        return new MemcachedCacheProvider($memcached);
+                    default:
+                        return ArrayCacheProvider::load($path);
+                }
             },
             static function (array $attributes = [], ?string $token = null) use ($app) {
                 $config = $app['config'];
-                $driver = $config->get('auth.guards.'.(Globals::guard() ?? 'http').'.driver');
-
-                if (is_null($model = $config->get('auth.providers.'.$driver.'.model'))) {
+                $driver = $config->get('auth.guards.http.driver');
+                if (is_null($model = $config->get('auth.providers.' . $driver . '.model'))) {
                     $model = class_exists('\Drewlabs\OAuthUser\User') ? '\Drewlabs\OAuthUser\User' : User::class;
                 }
 
@@ -124,7 +136,7 @@ class ServiceProvider extends SupportServiceProvider
 
                 $userFactory = $app->bound(UserFactory::class) ? $app[UserFactory::class] : null;
                 if (null === $userFactory) {
-                    $userFactoryClass = $config->get('auth.providers.'.$driver.'.userFactory');
+                    $userFactoryClass = $config->get('auth.providers.' . $driver . '.userFactory');
                     if ($userFactoryClass) {
                         $userFactory = \is_string($userFactoryClass) && class_exists($userFactoryClass) ? $app[$userFactoryClass] : $userFactoryClass;
                     }
@@ -133,18 +145,18 @@ class ServiceProvider extends SupportServiceProvider
                     $userFactory = $app[DefaultUserFactory::class];
                 }
                 if (!is_a($userFactory, UserFactory::class) && !\is_callable($userFactory)) {
-                    throw new \InvalidArgumentException('User Factory must be an istance of '.UserFactory::class.' or callable, instance of '.(\is_object($userFactory) && null !== $userFactory ? $userFactory::class : \gettype($userFactory)));
+                    throw new \InvalidArgumentException('User Factory must be an istance of ' . UserFactory::class . ' or callable, instance of ' . (\is_object($userFactory) && null !== $userFactory ? $userFactory::class : \gettype($userFactory)));
                 }
 
                 return \is_callable($userFactory) ? ($userFactory)($attributes, $token) : $userFactory->create($attributes, $token);
             },
-            static function () use ($app) {
+            static function () use ($app, $serversPath) {
                 $config = $app['config'];
-                $driver = $config->get('auth.guards.'.(Globals::guard() ?? 'http').'.driver');
-                Globals::primaryServer($config->get('auth.providers.'.$driver.'.hosts.default'));
-                Globals::hosts($config->get('auth.providers.'.$driver.'.hosts.cluster', []));
+                $driver = $config->get('auth.guards.http.driver');
+                $primaryServer = $config->get('auth.providers.' . $driver . '.hosts.default');
+                $cluster = $config->get('auth.providers.' . $driver . '.hosts.cluster', []);
 
-                return AuthServers::getPrimaryServer();
+                return AuthServers::getPrimaryServer($serversPath, $primaryServer);
             }
         );
     }

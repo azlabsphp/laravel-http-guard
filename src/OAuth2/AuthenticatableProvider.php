@@ -19,9 +19,9 @@ use Drewlabs\Curl\REST\Client as Http;
 use Drewlabs\Curl\REST\Exceptions\BadRequestException;
 use Drewlabs\HttpGuard\Exceptions\AuthorizationException;
 use Drewlabs\HttpGuard\Exceptions\ServerException;
-use Drewlabs\HttpGuard\Globals;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\Contracts\OAuth\PersonalAccessToken;
+use Drewlabs\HttpGuard\ArrayCacheProvider;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 
@@ -34,19 +34,24 @@ use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 {
-    /**
-     * @var AuthenticatableCacheProvider|\Closure
-     */
-    private $cacheProvider;
+    /** @var AuthenticatableCacheProvider|\Closure */
+    private $cache;
+
+    /** @var Server */
+    private $server;
 
     /**
      * creates authenticatable provider
      * 
      * @param Server $server
+     * @param AuthenticatableCacheProvider|\Closure $cache
      * 
      * @return void 
      */
-    public function __construct(private Server $server) {}
+    public function __construct(Server $server, $cache = null) {
+        $this->cache = $cache;
+        $this->server = $server;
+    }
 
     #[\Override]
     public function getByOAuthToken(string $token): Authenticatable
@@ -79,9 +84,10 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 $authToken = new AccessToken($token, $scopes, $expiresAt);
             }
         } catch (\Throwable $e) {
-            if (is_null($authToken =  $this->handleError($e, $token)) && Globals::usesCache()) {
+            if (is_null($authToken =  $this->handleError($e, $token))) {
                 return $this->loadFromCache($token);
             }
+
             throw new ServerException($e->getMessage(), $e->getCode(), $e);
         }
 
@@ -94,15 +100,13 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         $userResponse = Http::new(['base_url' => $this->server->getBaseUrl()])->withBearerToken($token)->get($this->server->mePath());
 
         if ($userResponse->getStatusCode() >= 200 && $userResponse->getStatusCode() < 300) {
-
             $json = $response->getJson();
             if (array_key_exists('sub', $json) && array_key_exists('name', $json)) {
                 $user = new User($json['sub'], $json['name'], null, [], [], $json);
                 $user = $user->withAccessToken($authToken);
             }
-
         } else {
-            
+
             throw new ServerBadResponseException($userResponse->getReasonPhrase(), $userResponse->getStatusCode());
         }
 
@@ -123,22 +127,10 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         return $response->getStatusCode() >= 200 && $response->getStatusCode() < 300;
     }
 
-    /**
-     * @return AuthenticatableCacheProvider
-     */
-    public function getCacheProvider()
-    {
-        if (is_a($this->cacheProvider, \Closure::class)) {
-            $this->cacheProvider = ($this->cacheProvider)();
-        }
-
-        return $this->cacheProvider;
-    }
-
 
     public function loadFromCache(string $token)
     {
-        $cacheProvider = $this->getCacheProvider();
+        $cacheProvider = $this->getCache();
         $user = $cacheProvider->read($token);
         if ($user instanceof User && $user->tokenExpires()) {
 
@@ -147,6 +139,28 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         }
 
         return $user;
+    }
+
+
+
+    public function __destruct()
+    {
+        if (($cache = $this->cache) instanceof ArrayCacheProvider) {
+            $cache->prune();
+            ArrayCacheProvider::dump($cache);
+        }
+    }
+
+    /**
+     * @return AuthenticatableCacheProvider
+     */
+    private function getCache()
+    {
+        if (is_a($this->cache, \Closure::class)) {
+            $this->cache = ($this->cache)();
+        }
+
+        return $this->cache;
     }
 
 

@@ -61,11 +61,9 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     {
         try {
             $this->userFactory = $userFactory ?? new UserFactory;
-            $this->cacheProvider = $cacheProvider ?? ArrayCacheProvider::load();
-            $this->host = $host ?? static function () {
-                return AuthServers::getPrimaryServer();
-            };
-        } catch (\RuntimeException $e) {
+            $this->cacheProvider = $cacheProvider;
+            $this->host = $host;
+        } catch (\Throwable $e) {
             $this->useCache = true;
         }
     }

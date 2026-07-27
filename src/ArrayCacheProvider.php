@@ -19,15 +19,15 @@ use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 
 class ArrayCacheProvider implements AuthenticatableCacheProvider
 {
-    /**
-     * @var array<string,Authenticatable>
-     */
+    /** @var array<string,Authenticatable> */
     private $state = [];
 
-    /**
-     * @var string
-     */
+    /** @var string */
     private $prefix;
+
+
+    /** @var string */
+    private $writePath;
 
     /**
      * creates the Array Cache provider instances.
@@ -36,10 +36,11 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
      *
      * @return void
      */
-    private function __construct($state = [])
+    private function __construct($state = [], array $options = [])
     {
         $this->state = $state ?? [];
-        $this->prefix = Globals::cachePrefix();
+        $this->prefix = $options['cache_prefix'] ?? 'http_guard_';
+        $this->writePath = $options['write_path'];
     }
 
     public function write(string $id, Authenticatable $user)
@@ -85,36 +86,36 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
 
     public static function dump(self $cache)
     {
-        if (!Globals::usesCache()) {
-            return;
-        }
-        $path = Globals::cachePath();
-        $dirname = \dirname($path);
+        $dirname = \dirname($cache->writePath);
         if (!is_dir($dirname)) {
             mkdir($dirname, 0777, true);
         }
-        if ($result = @serialize($cache->mergeState(self::load()->getState()))) {
-            ReadWriter::open($path, 'wb')->write($result);
+
+        if ($result = @serialize($cache->mergeState(self::load($cache->writePath)->getState()))) {
+            ReadWriter::open($cache->writePath, 'wb')->write($result);
         }
     }
 
     /**
      * @return static
      */
-    public static function load()
+    public static function load(string $path)
     {
-        if (!Globals::usesCache()) {
-            return new self();
-        }
-        if (!file_exists($path = Globals::cachePath())) {
+        if (!file_exists($path)) {
             return new self();
         }
 
         $contents = ReadWriter::open($path)->read();
 
-        $deserialized = false !== $contents && !empty($contents) ? @unserialize($contents) : false;
+        $value = false !== $contents && !empty($contents) ? @unserialize($contents) : false;
 
-        return $deserialized && $deserialized instanceof self ? $deserialized : new self();
+        return $value && $value instanceof self ? $value : new self();
+    }
+
+
+    public function __destruct()
+    {
+        ArrayCacheProvider::dump($this);
     }
 
     private function resolveKey(string $key)

@@ -15,30 +15,14 @@ namespace Drewlabs\HttpGuard;
 
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 
+/** @deprecated */
 class CacheProviderFactory
 {
     /**
      * @return AuthenticatableCacheProvider
      */
-    public function make(string $driver = 'array')
+    public function make(string $driver = 'array', array $options = [])
     {
-        switch (strtolower($driver)) {
-            case 'array':
-                return ArrayCacheProvider::load();
-            case 'redis':
-                return new RedisCacheProvider();
-            case 'memcached':
-                $parameters = Globals::forMemcached();
-                $memcached = (new MemcachedConnector())->connect(
-                    $parameters['servers'] ?? [],
-                    $parameters['persistent_id'] ?? null,
-                    $parameters['options'] ?? [],
-                    $parameters['sasl'] ?? []
-                );
 
-                return new MemcachedCacheProvider($memcached);
-            default:
-                return ArrayCacheProvider::load();
-        }
     }
 }

@@ -21,20 +21,19 @@ use Drewlabs\Core\Helpers\Str;
  */
 final class AuthServers
 {
-    public static function setClusterAvailableNodeIfMissing()
+    public static function setClusterAvailableNodeIfMissing(string $writePath, array $cluster = [])
     {
-        if (!file_exists(Globals::nodesCachePath())) {
-            static::setAvailableNode();
+        if (!file_exists($writePath)) {
+            static::setAvailableNode($writePath, $cluster);
         }
     }
 
-    public static function setAvailableNode()
+    public static function setAvailableNode(string $writePath, array $cluster = [])
     {
-        $nodes = Globals::hosts();
-        if (!empty($nodes)) {
+        if (!empty($cluster)) {
             /** @var int|null */
             $primary = null;
-            foreach ($nodes as $index => $node) {
+            foreach ($cluster as $index => $node) {
                 if (true === $node['primary'] ?? false) {
                     $primary = $index;
                     break;
@@ -45,34 +44,36 @@ final class AuthServers
             $primaryNode = null;
 
             if (null !== $primary) {
-                $primaryNode = $nodes[$primary]['host'] ?? null;
-                unset($nodes[$primary]);
+                $primaryNode = $cluster[$primary]['host'] ?? null;
+                unset($cluster[$primary]);
             }
 
             if (!class_exists('\Drewlabs\Net\Ping\Client')) {
-                return static::writeCache(Globals::nodesCachePath(), $primaryNode);
+                return static::writeCache($writePath, $primaryNode);
             }
 
             if ($primaryNode && static::isAvailable($primaryNode)) {
-                return static::writeCache(Globals::nodesCachePath(), $primaryNode);
+                return static::writeCache($writePath, $primaryNode);
             }
 
-            foreach (static::getAvailableSecondaryServers($nodes) as $node) {
-                return static::writeCache(Globals::nodesCachePath(), $node);
+            foreach (static::getAvailableSecondaryServers($cluster) as $node) {
+                return static::writeCache($writePath, $node);
             }
 
-            if (file_exists(Globals::nodesCachePath())) {
-                @unlink(Globals::nodesCachePath());
+            if (file_exists($writePath)) {
+                @unlink($writePath);
             }
         }
     }
 
-    public static function getPrimaryServer()
+    public static function getPrimaryServer(string $writePath, string $primaryServer)
     {
-        $host = @file_get_contents(Globals::nodesCachePath());
-        if (false === $host) {
-            $host = Globals::primaryServer();
+        ;
+
+        if (false === ($host = @file_get_contents($writePath))) {
+            $host = $primaryServer;
         }
+
         if (!$host) {
             throw new \RuntimeException('No auth server node available');
         }
