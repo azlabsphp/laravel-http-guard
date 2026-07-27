@@ -37,12 +37,11 @@ class User implements Authenticatable, AuthorizationsAware, AbstractAuthenticata
         foreach ($attributes as $key => $value) {
             $this->attributes[$key] = $value;
         }
-        
         $this->validateAttributes();
     }
 
     /**
-     * Returns a boolean value indicationg whether the user is verified / Not.
+     * returns a boolean value indicationg whether the user is verified / Not.
      *
      * @return bool
      */
@@ -71,5 +70,15 @@ class User implements Authenticatable, AuthorizationsAware, AbstractAuthenticata
         if (!$hasRequiredAttributes) {
             throw new ServerBadResponseException('missing required attributes');
         }
+    }
+
+    public function rememberTokenName()
+    {
+        return 'remember_token';
+    }
+
+    public function getAuthUserName()
+    {
+        return $this->username;
     }
 }

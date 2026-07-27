@@ -20,9 +20,7 @@ use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 
 class MemcachedCacheProvider implements AuthenticatableCacheProvider
 {
-    /**
-     * @var \Memcached
-     */
+    /** @var \Memcached */
     private $client;
 
     /**
@@ -43,9 +41,11 @@ class MemcachedCacheProvider implements AuthenticatableCacheProvider
         if ($expires && ($expires <= 0)) {
             return;
         }
+
         if ($this->exists($id)) {
-            $this->delete($id, serialize($user), $expires);
+            $this->delete($id);
         }
+
         $this->client->add($this->resolveKey($id), serialize($user), $expires);
     }
 

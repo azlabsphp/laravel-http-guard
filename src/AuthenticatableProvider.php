@@ -55,7 +55,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
      * @param UserFactory|\Closure|null             $userFactory
      * @param string|\Closure|null                  $host
      *
-     * @return self
+     * @return static
      */
     public function __construct($cacheProvider = null, $userFactory = null, $host = null)
     {
@@ -81,7 +81,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     /**
      * set the user factory object to use to creates the authenticatable instance.
      *
-     * @return self
+     * @return static
      */
     public function setUserFactory(UserFactory $userFactory)
     {

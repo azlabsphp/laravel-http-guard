@@ -30,11 +30,8 @@ class DefaultUserFactory implements UserFactory
         }
         $user = forward_static_call([$class, 'createFromAttributes'], Arr::except($attributes, ['accessToken']));
         if ($this->supportsTokens($user)) {
-            /**
-             * @var AccessToken
-             */
+            /** @var AccessToken */
             $accessToken = AccessToken::createFromAttributes($attributes['accessToken'] ?? []);
-            // When the accessToken attribute is null we throw a new ServerBadResponseException
             if (null === $accessToken) {
                 throw new ServerBadResponseException('Access token is required for authenticatable classes that supports token');
             }
@@ -57,9 +54,14 @@ class DefaultUserFactory implements UserFactory
         return $tokenable instanceof HasApiTokens || (method_exists($tokenable, 'token') && method_exists($tokenable, 'withAccessToken'));
     }
 
+    /**
+     * 
+     * @param mixed $object 
+     * @return bool 
+     */
     private function isAttributeAware($object)
     {
-        $object = \is_object($object) ? $object::class : $object;
+        $object = \is_object($object) ? get_class($object) : $object;
         $isStatic = static function ($object, $method) {
             try {
                 return (new \ReflectionMethod($object, $method))->isStatic();
@@ -68,7 +70,7 @@ class DefaultUserFactory implements UserFactory
             }
         };
 
-        return \count(array_intersect([AttributesAware::class, \Drewlabs\Support\Traits\AttributesAware::class], Reflector::usesRecursive($object))) > 0
+        return \count(array_intersect([AttributesAware::class, '\Drewlabs\Support\Traits\AttributesAware'], Reflector::usesRecursive($object))) > 0
             || (method_exists($object, 'createFromAttributes') && $isStatic($object, 'createFromAttributes'));
     }
 }

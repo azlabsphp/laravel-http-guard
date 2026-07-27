@@ -40,7 +40,7 @@ class Guard
     /**
      * creates a new guard instance.
      *
-     * @return self
+     * @return static
      */
     public function __construct(AuthFactory $auth, ApiTokenAuthenticatableProvider $provider)
     {

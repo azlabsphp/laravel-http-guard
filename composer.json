@@ -3,7 +3,7 @@
     "description": "Laravel/Lumen authentication guard using using HTTP protocol interface",
     "type": "library",
     "require-dev": {
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^11.0"
     },
     "license": "MIT",
     "keywords": [
@@ -27,14 +27,14 @@
             "email": "asmyns.platonnas29@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": "^7.2|^8.0",
-        "drewlabs/contracts": "^0.3",
-        "drewlabs/core-helpers": "^0.3",
-        "drewlabs/curl-rest-client": "^0.2.0|^0.3.0|^0.4.0",
-        "illuminate/support": "^9.0|^10.0|^11.0"
+        "php": "^8.2",
+        "drewlabs/contracts": "^0.4",
+        "drewlabs/core-helpers": "^0.4",
+        "drewlabs/curl-rest-client": "^0.3.0|^0.4.0",
+        "illuminate/auth": "^11.0|^12.0|^13.0"
     },
     "suggest": {
         "predis/predis": "Required to use the redis cache provider.",

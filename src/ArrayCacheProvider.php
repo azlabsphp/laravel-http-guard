@@ -99,7 +99,7 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
     }
 
     /**
-     * @return self
+     * @return static
      */
     public static function load()
     {

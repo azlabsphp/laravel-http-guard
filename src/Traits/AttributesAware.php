@@ -22,12 +22,13 @@ trait AttributesAware
      */
     private $attributes = [];
 
+    /** @param mixed $value  */
     public function __set(string $name, $value)
     {
         $this->setAttribute($name, $value);
     }
 
-    public function __get($name)
+    public function __get(string $name)
     {
         return $this->getAttribute($name);
     }
@@ -39,7 +40,7 @@ trait AttributesAware
     {
         $reflector = new \ReflectionClass(__CLASS__);
         if ($reflector->isAbstract()) {
-            throw new \LogicException('Class is not instanciable...');
+            throw new \LogicException('class is not instanciable');
         }
         if ($reflector->isInstantiable()) {
             return static::createNewArgsInstance($reflector, $attributes);
@@ -47,17 +48,14 @@ trait AttributesAware
         try {
             return static::createByReflectedConstructor($reflector, $attributes);
         } catch (\ReflectionException $e) {
-            return new self();
+            return new static();
         }
     }
 
     private static function validateConstructorFirstParameter(\ReflectionParameter $parameter)
     {
         $type = $parameter->getType();
-        if (
-            ($type instanceof \ReflectionNamedType && 'array' === $type->getName())
-            || !$parameter->hasType()
-        ) {
+        if (($type instanceof \ReflectionNamedType && 'array' === $type->getName()) || !$parameter->hasType() ) {
             return;
         }
         throw new \LogicException(__CLASS__.' must have only one required parameter which must be of type array');
