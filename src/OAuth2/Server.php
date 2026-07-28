@@ -62,7 +62,8 @@ final class Server implements BasicAuthSeverInterface
      * 
      * @param string $user 
      * @param string $password 
-     * @return void 
+     * 
+     * @return static 
      */
     public function withBasicAuth(string $user, string $password)
     {

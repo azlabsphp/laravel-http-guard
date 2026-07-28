@@ -14,8 +14,7 @@ declare(strict_types=1);
 namespace Drewlabs\HttpGuard\Tests;
 
 use Drewlabs\Contracts\Auth\Authenticatable;
-use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
-use Drewlabs\HttpGuard\LegacyUser;
+use Drewlabs\HttpGuard\User;
 use PHPUnit\Framework\TestCase;
 
 class UserTest extends TestCase
@@ -23,8 +22,6 @@ class UserTest extends TestCase
     public function test_user_constructor_throws_exception_for_invalid_attributes()
     {
         $attributes = [
-            'id' => 1,
-            'username' => 'APPSYSADMIN',
             'is_active' => true,
             'remember_token' => null,
             'firstname' => 'ADMIN',
@@ -38,42 +35,20 @@ class UserTest extends TestCase
             'deleted_at' => null,
             'created_at' => '2022-05-30T10:01:04.000000Z',
             'updated_at' => '2022-05-30T10:01:04.000000Z',
-            'emails' => [ 'contact@azlabs.tg' ],
+            'emails' => ['contact@azlabs.tg'],
             'double_auth_active' => false,
-            'channels' => [],
             'is_verified' => true,
-            'authorizations' => [
-                0 => 'all',
-                1 => 'sys:all',
-            ],
-            'roles' => [
-                0 => 'SYSADMIN',
-            ],
             'accessToken' => [
                 'provider' => 'drewlabs:jwt',
                 'id' => '1',
                 'idToken' => 'kg8PVAEryEr2s9d1NRqFiwIehM3bMRFgK2U6Y13VaPL',
-                'scopes' => [
-                    0 => 'all',
-                    1 => 'sys:all',
-                ],
+                'scopes' => ['all', 'sys:all'],
                 'expiresAt' => '2022-05-31T11:43:15+0000',
                 'iat' => '2022-05-30T11:43:15+0000',
                 'iss' => 'IDENTITY WEB SERVICE',
             ],
         ];
-        $user = LegacyUser::createFromAttributes($attributes);
-        $this->assertInstanceOf(Authenticatable::class, $user);
-    }
-
-    public function test_user_constructor_passes_for_valid_attributes()
-    {
-        $this->expectException(ServerBadResponseException::class);
-        $attributes = [
-            'version' => 'v1.0.0',
-            'id' => 1,
-        ];
-        $user = LegacyUser::createFromAttributes($attributes);
+        $user = new User(1, 'APPSYSADMIN', null, ['all', 'sys:all'], ['SYSADMIN'], $attributes);
         $this->assertInstanceOf(Authenticatable::class, $user);
     }
 }

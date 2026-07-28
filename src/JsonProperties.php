@@ -36,6 +36,7 @@ final class JsonProperties
     /** @var string */
     private $groupsProperty = 'roles';
 
+
     public function getAccessTokenProperty(): string
     {
         return $this->accessTokenProperty;

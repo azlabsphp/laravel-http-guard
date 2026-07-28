@@ -22,14 +22,10 @@ class Connector
      */
     public function connect(array $servers, $id = null, array $options = [], array $credentials = [])
     {
-        $memcached = $this->resolveInstance($id, $options, $credentials);
+        $memcached = $this->createInstance($id, $options, $credentials);
         if (empty($memcached->getServerList())) {
             foreach ($servers as $server) {
-                $memcached->addServer(
-                    $server['host'] ?? null,
-                    $server['port'] ?? null,
-                    $server['weight'] ?? 0
-                );
+                $memcached->addServer($server['host'] ?? null, $server['port'] ?? null, $server['weight'] ?? 0);
             }
             if (false === $memcached->getStats()) {
                 throw new \RuntimeException('No Available memcached server found in the server list');
@@ -44,7 +40,7 @@ class Connector
      *
      * @return \Memcached
      */
-    private function resolveInstance($connection, ?array $options = [], ?array $sasl = [])
+    private function createInstance($connection, ?array $options = [], ?array $sasl = [])
     {
         if (!class_exists(\Memcached::class)) {
             throw new \RuntimeException('ext-memcached is required to use the memcached driver');

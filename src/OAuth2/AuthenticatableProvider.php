@@ -21,18 +21,10 @@ use Drewlabs\HttpGuard\Exceptions\AuthorizationException;
 use Drewlabs\HttpGuard\Exceptions\ServerException;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\Contracts\OAuth\PersonalAccessToken;
-use Drewlabs\HttpGuard\CacheProvider;
 use Drewlabs\HttpGuard\Contracts\BasicAuthSeverInterface;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\HttpGuard\User;
-
-// $this->baseUrl      = Config::get('oauth_service.base_url');
-// $this->clientId     = Config::get('oauth_service.client_id');
-// $this->clientSecret = Config::get('oauth_service.client_secret');
-// $this->tokenPath    = Config::get('oauth_service.token_path');
-// $this->mePath       = Config::get('oauth_service.me_path');
-// $this->revokePath   = Config::get('oauth_service.revoke_path');
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 {
@@ -143,23 +135,13 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         return $user;
     }
 
-
-
-    public function __destruct()
-    {
-        if (($cache = $this->cache) instanceof CacheProvider) {
-            $cache->prune();
-            CacheProvider::dump($cache);
-        }
-    }
-
     /**
      * @return AuthenticatableCacheProvider
      */
     private function getCache()
     {
         if (is_a($this->cache, \Closure::class)) {
-            $this->cache = ($this->cache)();
+            $this->cache = call_user_func($this->cache);
         }
 
         return $this->cache;

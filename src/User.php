@@ -17,7 +17,6 @@ use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\HttpGuard\Traits\HasApiToken;
 use Drewlabs\Contracts\Auth\AuthorizationsAware;
 use Drewlabs\HttpGuard\Traits\AttributesAware;
-use Drewlabs\HttpGuard\Traits\Authenticatable as AuthTrait;
 use Drewlabs\HttpGuard\Traits\Authorizable;
 use Override;
 use Drewlabs\Contracts\Auth\Authenticatable;
@@ -28,7 +27,6 @@ final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, 
 {
     use HasApiToken;
     use Authorizable;
-    use AuthTrait;
     use AttributesAware;
 
     /** @var AccessToken */
@@ -39,6 +37,9 @@ final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, 
 
     /** @var string */
     private $username;
+
+    /** @var string */
+    private $remember = null;
 
     /** @var string|null */
     private $password;
@@ -52,13 +53,13 @@ final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, 
     /**
      * creates a user class instance
      * 
-     * @param string $sub 
+     * @param string|int $sub 
      * @param string $name 
      * @param null|string $password
      * 
      * @return void 
      */
-    public function __construct(string $sub, string $name, ?string $password  = null, array $authorizations = [], array $groups = [], array $attributes = [])
+    public function __construct($sub, string $name, ?string $password  = null, array $authorizations = [], array $groups = [], array $attributes = [])
     {
         $this->id = $sub;
         $this->username = $name;
@@ -106,6 +107,68 @@ final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, 
     }
 
     #[Override]
+    public function getAuthUserName()
+    {
+        return $this->username;
+    }
+
+    #[Override]
+    public function getAuthorizations(): array
+    {
+        return $this->authorizations;
+    }
+
+    #[Override]
+    public function getAuthorizationGroups(): array
+    {
+        return $this->groups;
+    }
+
+    public function authIdentifier()
+    {
+        return (string) $this->id;
+    }
+
+    public function getAuthIdentifier()
+    {
+        return $this->authIdentifier();
+    }
+
+    public function authPassword()
+    {
+        return $this->password;
+    }
+
+
+    public function getAuthPassword()
+    {
+        return $this->authPassword();
+    }
+
+    public function rememberToken($token = null)
+    {
+        if (null === $token) {
+            return $this->remember;
+        }
+
+        $this->remember = $token;
+    }
+
+    public function getRememberToken()
+    {
+        return $this->rememberToken();
+    }
+
+    /** 
+     * @param string $value
+     */
+    public function setRememberToken($value)
+    {
+        return $this->rememberToken($value);
+    }
+
+
+    #[Override]
     public function getRememberTokenName()
     {
         return $this->rememberTokenName();
@@ -128,23 +191,4 @@ final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, 
     {
         return 'remember_token';
     }
-
-    #[Override]
-    public function getAuthUserName()
-    {
-        return 'username';
-    }
-
-    #[Override]
-    public function getAuthorizations(): array
-    {
-        return $this->authorizations;
-    }
-
-    #[Override]
-    public function getAuthorizationGroups(): array
-    {
-        return $this->groups;
-    }
-
 }

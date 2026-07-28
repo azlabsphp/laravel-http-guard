@@ -37,9 +37,6 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     /** @var ServerInterface */
     private $server;
 
-    /** @var 'cache'|'request' */
-    private $priority;
-
     /** @var AbstractUserFactory|\Closure */
     private $factory;
 
@@ -50,11 +47,10 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
      * @param AbstractUserFactory|\Closure $factory             User factory dependency
      *
      */
-    public function __construct(ServerInterface $server, $factory, $cache = null, string $priority = 'request')
+    public function __construct(ServerInterface $server, $factory, $cache = null)
     {
         $this->server = $server;
         $this->cache = $cache;
-        $this->priority = $priority;
         $this->factory = $factory;
     }
 
@@ -92,7 +88,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
     public function getByOAuthToken(string $token): ?Authenticatable
     {
-        if ($this->cache && 'request' !== $this->priority) {
+        if ($this->cache) {
             return $this->fromCache($token);
         }
 
@@ -100,7 +96,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             /** @var Response */
             $response = Client::new()->withBearerToken($token)->get($this->server->tokenPath());
             $json = $response->getBody();
-            $user = \is_callable($this->factory) ? call_user_func($this->factory, $json) : $this->factory->create($json, $token);
+            $user = \is_callable($this->factory) ? call_user_func($this->factory, $json, $token) : $this->factory->create($json, $token);
             if ($this->cache && $this->isAuthenticatable($user)) {
                 $this->getCacheProvider()->write($token, $user);
             }
@@ -131,7 +127,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     {
         $cacheProvider = $this->getCacheProvider();
         $user = $cacheProvider->read($token);
-        if (($user instanceof LegacyUser) && $user->tokenExpires()) {
+        if (($user instanceof User) && $user->tokenExpires()) {
             $cacheProvider->delete($token);
             throw new TokenExpiresException($token);
         }

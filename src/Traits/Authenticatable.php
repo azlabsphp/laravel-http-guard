@@ -15,6 +15,7 @@ namespace Drewlabs\HttpGuard\Traits;
 
 
 /**
+ * @deprecated
  * @mixin AttributesAware
  */
 trait Authenticatable

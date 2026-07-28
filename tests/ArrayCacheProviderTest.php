@@ -18,8 +18,7 @@ use Drewlabs\Core\Helpers\Rand;
 use Drewlabs\Core\Helpers\UUID;
 use Drewlabs\HttpGuard\CacheProvider;
 use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
-use Drewlabs\HttpGuard\Globals;
-use Drewlabs\HttpGuard\LegacyUser;
+use Drewlabs\HttpGuard\User;
 use PHPUnit\Framework\TestCase;
 
 class ArrayCacheProviderTest extends TestCase
@@ -27,20 +26,16 @@ class ArrayCacheProviderTest extends TestCase
     public function test_load_create_new_instance()
     {
         $this->cleanup();
-        $instance = CacheProvider::load();
+        $instance = CacheProvider::load(__DIR__ . '/../cache/auth.dump');
         $this->assertInstanceOf(CacheProvider::class, $instance);
     }
 
     public function test_write_new_key_to_cache()
     {
         $this->cleanup();
-        $instance = CacheProvider::load();
+        $instance = CacheProvider::load(__DIR__ . '/../cache/auth.dump');
         $id = UUID::create();
-        $user = LegacyUser::createFromAttributes([
-            'username' => sprintf('USER%s', Rand::int(1000, 10000)),
-            'is_verified' => true,
-            'id' => $id,
-        ]);
+        $user = new User($id, sprintf('USER%s', Rand::int(1000, 10000)), null, [], [], ['is_verified' => true]);
         $instance->write($id, $user);
         $this->assertCount(1, $instance->getState());
     }
@@ -48,13 +43,9 @@ class ArrayCacheProviderTest extends TestCase
     public function test_read_existing_key_from_cache_returns_a_user_instance()
     {
         $this->cleanup();
-        $instance = CacheProvider::load();
+        $instance = CacheProvider::load(__DIR__ . '/../cache/auth.dump');
         $id = UUID::create();
-        $user = LegacyUser::createFromAttributes([
-            'username' => sprintf('USER%s', Rand::int(1000, 10000)),
-            'is_verified' => true,
-            'id' => $id,
-        ]);
+        $user = new User($id, sprintf('USER%s', Rand::int(1000, 10000)), null, [], [], ['is_verified' => true]);
         $instance->write($id, $user);
 
         $this->assertInstanceOf(Authenticatable::class, $instance->read($id));
@@ -65,7 +56,7 @@ class ArrayCacheProviderTest extends TestCase
     {
         $this->cleanup();
         $this->expectException(AuthenticatableNotFoundException::class);
-        $instance = CacheProvider::load();
+        $instance = CacheProvider::load(__DIR__ . '/../cache/auth.dump');
         $id = UUID::create();
         $this->assertNull($instance->read($id));
     }
@@ -73,29 +64,21 @@ class ArrayCacheProviderTest extends TestCase
     public function test_dump_write_instance_state_to_disk_and_load_resolve_the_written_state()
     {
         $this->cleanup();
-        $instance = CacheProvider::load();
+        $instance = CacheProvider::load(__DIR__ . '/../cache/auth.dump');
         $id = UUID::create();
-        Globals::usernameProperty('user_name');
-        $user = LegacyUser::createFromAttributes([
-            'user_name' => sprintf('USER%s', Rand::int(1000, 10000)),
-            'is_verified' => true,
-            'id' => $id,
-        ]);
+        $user = new User($id, sprintf('USER%s', Rand::int(1000, 10000)), null, [], [], ['is_verified' => true]);
         $instance->write($id, $user);
-        CacheProvider::dump($instance);
-        $instance2 = CacheProvider::load();
+        CacheProvider::dump($instance->getState(), $instance->getPath());
+        $instance2 = CacheProvider::load(__DIR__ . '/../cache/auth.dump');
         $this->assertSame(count($instance->getState()), count($instance2->getState()));
         $this->assertSame($instance->read($id)->getAuthUserName(), $instance->read($id)->getAuthUserName());
         $this->assertSame($instance->read($id)->authIdentifier(), $instance->read($id)->authIdentifier());
         $this->assertEquals($user, $instance2->read($id));
-
-        // reset user name attribute to it default value
-        Globals::usernameProperty('username');
     }
 
     private function cleanup()
     {
-        if (is_file($path = Globals::cachePath())) {
+        if (is_file($path = __DIR__ . '/../cache/auth.dump')) {
             unlink($path);
         }
     }

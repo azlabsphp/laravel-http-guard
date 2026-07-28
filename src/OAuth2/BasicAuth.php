@@ -18,6 +18,12 @@ use Drewlabs\HttpGuard\Contracts\BasicAuthInterface;
 final class BasicAuth implements BasicAuthInterface
 {
 
+    /** @var string */
+    private $user;
+
+    /** @var string */
+    private $password;
+
     /**
      * creates auth credentials class
      * 
@@ -25,8 +31,10 @@ final class BasicAuth implements BasicAuthInterface
      * @param string $password 
      * @return void 
      */
-    public function __construct(private string $user, private string $password)
+    public function __construct(string $user, string $password) 
     {
+        $this->user = $user;
+        $this->password = $password;
     }
 
     /**

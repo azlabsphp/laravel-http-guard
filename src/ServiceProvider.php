@@ -22,6 +22,7 @@ use Illuminate\Support\ServiceProvider as SupportServiceProvider;
 use Drewlabs\HttpGuard\Memcached\Client as Memcached;
 use Drewlabs\HttpGuard\Memcached\Connector;
 use Drewlabs\HttpGuard\Redis\Client as Redis;
+use Drewlabs\HttpGuard\OAuth2\Server as OAuth2Server;
 
 class ServiceProvider extends SupportServiceProvider
 {
@@ -48,6 +49,32 @@ class ServiceProvider extends SupportServiceProvider
             $config = $app->make('config');
             return $app->make($config->get('auth.providers.' . $config->get('auth.guards.http.driver') . '.provider', OAuth2Provider::class));
         });
+
+        $this->app->register(AuthenticatableProvider::class, function ($app) {
+            return $this->createAuthenticatableProvider($app);
+        });
+
+        $this->app->register(OAuth2Provider::class, function ($app) {
+            $config = $app->make('config');
+            $name = $config->get('auth.guards.http.driver');
+            $driver = $config->get(sprintf('auth.providers.%s.cache.driver', $name), null);
+            $baseDirectory = $this->baseDirectory();
+            $cachePath = $config->get(sprintf('auth.providers.%s.cache.path', $name), "$baseDirectory" . \DIRECTORY_SEPARATOR . "auth.dump");
+            $serversPath = $baseDirectory . \DIRECTORY_SEPARATOR . 'node.sock';
+            $primaryServer = $config->get('auth.providers.' . $name . '.hosts.primary');
+
+            $server = new OAuth2Server(function () use ($serversPath, $primaryServer) {
+                return AuthServers::getPrimaryServer($serversPath, $primaryServer);
+            });
+
+            list($user, $password) = [$config->get(sprintf('auth.providers.%s.oauth2.client_id', $name)), $config->get(sprintf('auth.providers.%s.oauth2.client_secret', $name))];
+
+            if (is_string($user) && is_string($password)) {
+                $server = $server->withBasicAuth($user, $password);
+            }
+
+            return new OAuth2Provider($server, $driver ? $this->cacheDriverFactory($config, $driver, $cachePath) : null);
+        });
     }
 
     /**
@@ -73,13 +100,6 @@ class ServiceProvider extends SupportServiceProvider
         );
     }
 
-    // private function initializeAuthServerNodeChecker(Repository $config)
-    // {
-    //     $driver = $config->get('auth.guards.http.driver');
-    //     $cluster = $config->get('auth.providers.' . $driver . '.hosts.cluster', []);
-    //     AuthServers::setClusterAvailableNodeIfMissing();
-    // }
-
     /**
      * Creates directory if exists.
      *
@@ -100,51 +120,115 @@ class ServiceProvider extends SupportServiceProvider
     /**
      * Creates an instance of authenticatable provider.
      *
-     * @param mixed $app
+     * @param \Illuminate\Contracts\Foundation\Application $app
      *
      * @return AuthenticatableProvider
      */
     private function createAuthenticatableProvider($app)
     {
-        // $baseDirectory = \DIRECTORY_SEPARATOR . 'http-guard' . \DIRECTORY_SEPARATOR . 'cache';
-        // $dir = $this->makeDirectory(sprintf('%s%s', rtrim($this->app->storagePath(), \DIRECTORY_SEPARATOR), $baseDirectory));
-        // $path = $dir . \DIRECTORY_SEPARATOR . 'auth.dump';
-        // $serversPath = $dir . \DIRECTORY_SEPARATOR . 'node.sock';
-        // static function () use ($app, $serversPath) {
-        //     $config = $app['config'];
-        //     $driver = $config->get('auth.guards.http.driver');
-        //     $primaryServer = $config->get('auth.providers.' . $driver . '.hosts.default');
-        //     // $cluster = $config->get('auth.providers.' . $driver . '.hosts.cluster', []);
+        /** @var Repository */
+        $config = $app->make('config');
+        $name = $config->get('auth.guards.http.driver');
+        $cacheDriver = $config->get(sprintf('auth.providers.%s.cache.driver', $name), null);
+        $json = $config->get(sprintf('auth.providers.%s.json', $name), []);
 
-        //     return AuthServers::getPrimaryServer($serversPath, $primaryServer);
-        // }
+        $baseDirectory = $this->baseDirectory();
+        $cachePath = $config->get(sprintf('auth.providers.%s.cache.path', $name), "$baseDirectory" . \DIRECTORY_SEPARATOR . "auth.dump");
+
+        $serversPath = $baseDirectory . \DIRECTORY_SEPARATOR . 'node.sock';
+        $primaryServer = $config->get('auth.providers.' . $name . '.hosts.primary');
+
         return new AuthenticatableProvider(
-            new Server,
-            static function (array $attributes = [], ?string $token = null) use ($app) {
-                $config = $app['config'];
+            new Server(static function () use ($serversPath, $primaryServer) {
+                return AuthServers::getPrimaryServer($serversPath, $primaryServer);
+            }),
+            static function (array $attributes = [], ?string $token = null) use ($app, $json) {
+                $config = $app->make('config');
                 $driver = $config->get('auth.guards.http.driver');
-                if (is_null($model = $config->get('auth.providers.' . $driver . '.model'))) {
-                    $model = class_exists('\Drewlabs\OAuthUser\User') ? '\Drewlabs\OAuthUser\User' : User::class;
+
+
+                if ($className = $config->get('auth.providers.' . $driver . '.user_factory')) {
+                    return $app->make($className)->create($attributes, $token);
                 }
 
                 $properties = new JsonProperties;
+                if (is_array($json) && !empty($json)) {
 
-                #TODO: load json properties from laravel configuration
-                return new UserFactory($model, $properties);
-            },
-            static function () use ($app, $path): mixed {
-                switch (strtolower($driver)) {
-                    case 'array':
-                        return CacheProvider::load($path);
-                    case 'redis':
-                        return new Redis($options);
-                    case 'memcached':
-                        $memcached = (new Connector())->connect($options['servers'] ?? [], $options['persistent_id'] ?? null, $options['options'] ?? [], $options['sasl'] ?? [] );
-                        return new Memcached($memcached);
-                    default:
-                        return CacheProvider::load($path);
+                    if (array_key_exists('sub', $json)) {
+                        $properties = $properties->setUserIdProperty($json['sub']);
+                    }
+
+                    if (array_key_exists('name', $json)) {
+                        $properties = $properties->setUsernameProperty($json['name']);
+                    }
+
+                    if (array_key_exists('password', $json)) {
+                        $properties = $properties->setPasswordProperty($json['password']);
+                    }
+
+                    if (array_key_exists('token', $json)) {
+                        $properties = $properties->setAccessTokenProperty($json['token']);
+                    }
+
+                    if (array_key_exists('remember', $json)) {
+                        $properties = $properties->setRememberTokenProperty($json['remember']);
+                    }
+
+                    if (array_key_exists('authorizations', $json)) {
+                        $properties = $properties->setAuthorizationsProperty($json['authorizations']);
+                    }
+
+                    if (array_key_exists('groups', $json)) {
+                        $properties = $properties->setGroupsProperty($json['groups']);
+                    }
                 }
-            }
+
+                $factory =  new UserFactory($config->get('auth.providers.' . $driver . '.model', User::class), $properties);
+
+                return $factory->create($attributes, $token);
+            },
+            $cacheDriver ? $this->cacheDriverFactory($config, $cacheDriver, $cachePath) : null
         );
+    }
+
+
+    /**
+     * return a cache driver matching the provided driver name
+     * 
+     * @param Repository $config 
+     * @param string $driver 
+     * @param string $path 
+     * @return CacheProvider|Redis|Memcached 
+     */
+    private function cacheDriverFactory(Repository $config, string $driver, string $path)
+    {
+        switch (strtolower($driver)) {
+            case 'array':
+                return CacheProvider::load($path);
+            case 'redis':
+                return new Redis($config->get('cache.stores.redis', []));
+            case 'memcached':
+                $options = $config->get('cache.stores.memcached', []);
+                $memcached = (new Connector())->connect(
+                    $options['servers'] ?? [],
+                    $options['persistent_id'] ?? null,
+                    $options['options'] ?? [],
+                    $options['sasl'] ?? []
+                );
+                return new Memcached($memcached);
+            default:
+                throw new \RuntimeException('unsupported cache driver');
+        }
+    }
+
+    /**
+     * returns the base http guard directory
+     * 
+     * @return string 
+     */
+    private function baseDirectory()
+    {
+        $dirname = \DIRECTORY_SEPARATOR . 'http-guard' . \DIRECTORY_SEPARATOR . 'cache';
+        return $this->makeDirectory(sprintf('%s%s', rtrim($this->app->storagePath(), \DIRECTORY_SEPARATOR), $dirname));
     }
 }
