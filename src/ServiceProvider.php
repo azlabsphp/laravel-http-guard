@@ -50,11 +50,11 @@ class ServiceProvider extends SupportServiceProvider
             return $app->make($config->get('auth.providers.' . $config->get('auth.guards.http.driver') . '.provider', OAuth2Provider::class));
         });
 
-        $this->app->register(AuthenticatableProvider::class, function ($app) {
+        $this->app->bind(AuthenticatableProvider::class, function ($app) {
             return $this->createAuthenticatableProvider($app);
         });
 
-        $this->app->register(OAuth2Provider::class, function ($app) {
+        $this->app->bind(OAuth2Provider::class, function ($app) {
             $config = $app->make('config');
             $name = $config->get('auth.guards.http.driver');
             $driver = $config->get(sprintf('auth.providers.%s.cache.driver', $name), null);
