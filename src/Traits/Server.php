@@ -26,7 +26,51 @@ trait Server
     private $token = 'oauth/token';
 
     /** @var string */
-    private $logout = 'oauth/revoke';
+    private $revoke = 'oauth/revoke';
+
+
+    /**
+     * set api me path 
+     * 
+     * @param string $path
+     * 
+     * @return static 
+     */
+    public function setMePath(string $path)
+    {
+        $this->me = $path;
+
+        return $this;
+    }
+
+
+    /**
+     * set token instrospection path 
+     * 
+     * @param string $path
+     * 
+     * @return static 
+     */
+    public function setTokenPath(string $path)
+    {
+        $this->token = $path;
+
+        return $this;
+    }
+
+    /**
+     * set revoke token path 
+     * 
+     * @param string $path
+     * 
+     * @return static 
+     */
+    public function setRevokeTokenPath(string $path)
+    {
+        $this->revoke = $path;
+
+        return $this;
+    }
 
     public function mePath()
     {
@@ -40,7 +84,7 @@ trait Server
 
     public function revokePath()
     {
-        return $this->url($this->logout);
+        return $this->url($this->revoke);
     }
 
     /**

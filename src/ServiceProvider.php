@@ -73,6 +73,10 @@ class ServiceProvider extends SupportServiceProvider
                 $server = $server->withBasicAuth($user, $password);
             }
 
+            $server = $server->setMePath($config->get('auth.providers.' . $name . '.oauth2.paths.me', 'api/me'))
+                                ->setTokenPath($config->get('auth.providers.' . $name . '.oauth2.paths.token', 'oauth/token'))
+                                ->setRevokeTokenPath($config->get('auth.providers.' . $name . '.oauth2.paths.revoke', 'oauth/revoke'));
+
             return new OAuth2Provider($server, $driver ? $this->cacheDriverFactory($config, $driver, $cachePath) : null);
         });
     }
@@ -138,10 +142,15 @@ class ServiceProvider extends SupportServiceProvider
         $serversPath = $baseDirectory . \DIRECTORY_SEPARATOR . 'node.sock';
         $primaryServer = $config->get('auth.providers.' . $name . '.hosts.primary');
 
+        $server = new Server(static function () use ($serversPath, $primaryServer) {
+            return AuthServers::getPrimaryServer($serversPath, $primaryServer);
+        });
+
+        $server = $server->setMePath($config->get('auth.providers.' . $name . '.oauth2.paths.me', 'api/v2/user'))
+                            ->setRevokeTokenPath($config->get('auth.providers.' . $name . '.oauth2.paths.revoke', 'api/v2/logout'));
+
         return new AuthenticatableProvider(
-            new Server(static function () use ($serversPath, $primaryServer) {
-                return AuthServers::getPrimaryServer($serversPath, $primaryServer);
-            }),
+            $server,
             static function (array $attributes = [], ?string $token = null) use ($app, $json) {
                 $config = $app->make('config');
                 $driver = $config->get('auth.guards.http.driver');

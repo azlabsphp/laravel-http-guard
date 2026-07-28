@@ -94,7 +94,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
         try {
             /** @var Response */
-            $response = Client::new()->withBearerToken($token)->get($this->server->tokenPath());
+            $response = Client::new()->withBearerToken($token)->get($this->server->mePath());
             $json = $response->getBody();
             $user = \is_callable($this->factory) ? call_user_func($this->factory, $json, $token) : $this->factory->create($json, $token);
             if ($this->cache && $this->isAuthenticatable($user)) {
