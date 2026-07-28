@@ -11,9 +11,9 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\HttpGuard;
+namespace Drewlabs\HttpGuard\Memcached;
 
-class MemcachedConnector
+class Connector
 {
     /**
      * @param mixed $id Connection id

@@ -14,17 +14,25 @@ declare(strict_types=1);
 namespace Drewlabs\HttpGuard;
 
 use Drewlabs\HttpGuard\Contracts\UserFactory as AbstractUserFactory;
+use Drewlabs\Contracts\Auth\Authenticatable;
 
 /** @deprecated use `UserFactory` class instead */
-class DefaultUserFactory implements AbstractUserFactory
+final class DefaultUserFactory implements AbstractUserFactory
 {
 
     /** @var UserFactory */
     private $factory;
 
-    public function __construct()
+    /**
+     * user factory class instance
+     * 
+     * @param class-string<Authenticatable> $model 
+     * @param JsonProperties $properties 
+     * @return void 
+     */
+    public function __construct($model, JsonProperties $properties)
     {
-        $this->factory = new UserFactory;
+        $this->factory = new UserFactory($model, $properties);
     }
 
     public function create(array $attributes = [], ?string $token = null)

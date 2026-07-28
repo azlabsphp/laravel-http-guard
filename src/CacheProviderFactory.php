@@ -22,7 +22,5 @@ class CacheProviderFactory
      * @return AuthenticatableCacheProvider
      */
     public function make(string $driver = 'array', array $options = [])
-    {
-
-    }
+    {}
 }

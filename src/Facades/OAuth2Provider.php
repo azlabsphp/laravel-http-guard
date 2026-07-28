@@ -11,7 +11,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\HttpGuard\OAuth2\Facades;
+namespace Drewlabs\HttpGuard\Facades;
 
 use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\HttpGuard\OAuth2\AuthenticatableProvider;
@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @mixin ApiTokenAuthenticatableProvider
  */
-final class AuthProvider extends Facade
+final class OAuth2Provider extends Facade
 {
     public static function getFacadeAccessor()
     {

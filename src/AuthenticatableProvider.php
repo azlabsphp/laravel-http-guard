@@ -20,74 +20,42 @@ use Drewlabs\Curl\REST\Exceptions\RequestException;
 use Drewlabs\Curl\REST\Response;
 use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
-use Drewlabs\HttpGuard\Contracts\UserFactory as AbstractUserFactory;
+use Drewlabs\HttpGuard\Contracts\ServerInterface;
 use Drewlabs\HttpGuard\Exceptions\ServerException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\HttpGuard\Exceptions\AuthorizationException;
 use Illuminate\Contracts\Auth\Authenticatable as BaseAuthenticatable;
+use Drewlabs\HttpGuard\Contracts\UserFactory as AbstractUserFactory;
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 {
     /**
      * @var AuthenticatableCacheProvider|\Closure
      */
-    private $cacheProvider;
+    private $cache;
 
-    /**
-     * @var string
-     */
-    private $host;
+    /** @var ServerInterface */
+    private $server;
 
-    /**
-     * @var bool
-     */
-    private $useCache = false;
+    /** @var 'cache'|'request' */
+    private $priority;
 
-    /**
-     * @var UserFactory|\Closure
-     */
-    private $userFactory;
+    /** @var AbstractUserFactory|\Closure */
+    private $factory;
 
     /**
      * creates authenticatable provider instance.
      *
-     * @param AuthenticatableCacheProvider|\Closure $cacheProvider
-     * @param AbstractUserFactory|\Closure|null             $userFactory
-     * @param string|\Closure|null                  $host
+     * @param AuthenticatableCacheProvider|\Closure $cache
+     * @param AbstractUserFactory|\Closure $factory             User factory dependency
      *
-     * @return static
      */
-    public function __construct($cacheProvider = null, $userFactory = null, $host = null)
+    public function __construct(ServerInterface $server, $factory, $cache = null, string $priority = 'request')
     {
-        try {
-            $this->userFactory = $userFactory ?? new UserFactory;
-            $this->cacheProvider = $cacheProvider;
-            $this->host = $host;
-        } catch (\Throwable $e) {
-            $this->useCache = true;
-        }
-    }
-
-    public function __destruct()
-    {
-        if (($cache = $this->cacheProvider) instanceof ArrayCacheProvider) {
-            $cache->prune();
-            ArrayCacheProvider::dump($cache);
-        }
-    }
-
-    /**
-     * set the user factory object to use to creates the authenticatable instance.
-     *
-     * @return static
-     */
-    public function setUserFactory(UserFactory $userFactory)
-    {
-        if (null !== $userFactory) {
-            $this->userFactory = $userFactory;
-        }
-
-        return $this;
+        $this->server = $server;
+        $this->cache = $cache;
+        $this->priority = $priority;
+        $this->factory = $factory;
     }
 
     /**
@@ -97,12 +65,12 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
      * @throws RequestException
      * @throws ServerException
      *
-     * @return void
+     * @return bool
      */
     public function revokeOAuthToken(string $token)
     {
         try {
-            Client::new()->withBearerToken($token)->get($this->makeRequestURL(Globals::revokeTokenPath()));
+            Client::new()->withBearerToken($token)->get($this->server->revokePath());
         } catch (RequestException $e) {
             if (401 === $e->getStatus()) {
                 throw new AuthorizationException($token, $e->getStatus());
@@ -114,25 +82,26 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 throw new AuthorizationException($token, $response->getStatus());
             }
 
-            return null;
+            return false;
         } catch (\Exception $e) {
             throw new ServerException($e->getMessage(), $e->getCode(), $e);
         }
+
+        return true;
     }
 
     public function getByOAuthToken(string $token): ?Authenticatable
     {
-        if (Globals::usesCache() && $this->useCache) {
-            return $this->getAuthenticatableFromCache($token);
+        if ($this->cache && 'request' !== $this->priority) {
+            return $this->fromCache($token);
         }
 
         try {
             /** @var Response */
-            $response = Client::new()->withBearerToken($token)->get($this->makeRequestURL(Globals::userPath()));
-            $user = \is_callable($this->userFactory) ?
-                ($this->userFactory)($response->getBody(), $token)
-                : $this->userFactory->create($response->getBody(), $token);
-            if (Globals::usesCache() && $this->isAuthenticatable($user)) {
+            $response = Client::new()->withBearerToken($token)->get($this->server->tokenPath());
+            $json = $response->getBody();
+            $user = \is_callable($this->factory) ? call_user_func($this->factory, $json) : $this->factory->create($json, $token);
+            if ($this->cache && $this->isAuthenticatable($user)) {
                 $this->getCacheProvider()->write($token, $user);
             }
 
@@ -151,18 +120,18 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
             return null;
         } catch (\Exception $e) {
-            if (Globals::usesCache()) {
-                return $this->getAuthenticatableFromCache($token);
+            if ($this->cache) {
+                return $this->fromCache($token);
             }
             throw new ServerException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
-    public function getAuthenticatableFromCache(string $token)
+    private function fromCache(string $token)
     {
         $cacheProvider = $this->getCacheProvider();
         $user = $cacheProvider->read($token);
-        if (($user instanceof User) && $user->tokenExpires()) {
+        if (($user instanceof LegacyUser) && $user->tokenExpires()) {
             $cacheProvider->delete($token);
             throw new TokenExpiresException($token);
         }
@@ -174,11 +143,11 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
      */
     public function getCacheProvider()
     {
-        if (is_a($this->cacheProvider, \Closure::class)) {
-            $this->cacheProvider = ($this->cacheProvider)();
+        if (is_a($this->cache, \Closure::class)) {
+            $this->cache = ($this->cache)();
         }
 
-        return $this->cacheProvider;
+        return $this->cache;
     }
 
     /**
@@ -191,17 +160,5 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     private function isAuthenticatable($instance)
     {
         return is_a($instance, BaseAuthenticatable::class, true) || is_a($instance, Authenticatable::class, true);
-    }
-
-    /**
-     * @internal
-     * 
-     * @return string
-     */
-    private function makeRequestURL(string $path)
-    {
-        $host = is_a($this->host, \Closure::class) ? ($this->host)() : $this->host;
-
-        return sprintf('%s/%s', rtrim($host ?? ''), ltrim($path ?? '', '/'));
     }
 }

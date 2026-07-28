@@ -16,7 +16,7 @@ namespace Drewlabs\HttpGuard;
 use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\Core\Helpers\DateTime;
-use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
+use Drewlabs\HttpGuard\Facades\LegacyAuthProvider;
 use Drewlabs\HttpGuard\Traits\AttributesAware;
 use Drewlabs\HttpGuard\Traits\ContainerAware;
 
@@ -36,14 +36,7 @@ class AccessToken implements Token
     public function revoke()
     {
         if ($this->authToken) {
-
-            try {
-                $provider = static::createResolver(ApiTokenAuthenticatableProvider::class)() ?? new AuthenticatableProvider();
-            } catch (\Throwable $e) {
-                $provider = new AuthenticatableProvider();
-            }
-
-            $provider->revokeOAuthToken($this->authToken);
+            return LegacyAuthProvider::revokeOAuthToken($this->authToken);
         }
     }
 
@@ -98,11 +91,14 @@ class AccessToken implements Token
     /**
      * set the authorization token property value
      * 
-     * @param string $value 
-     * @return void 
+     * @param string $value
+     * 
+     * @return static 
      */
     public function setAccessToken($value)
     {
         Arr::set($this->attributes, 'authToken', $value);
+
+        return $this;
     }
 }

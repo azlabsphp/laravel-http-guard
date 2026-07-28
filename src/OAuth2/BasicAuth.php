@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard\OAuth2;
 
-final class BasicAuth
+use Drewlabs\HttpGuard\Contracts\BasicAuthInterface;
+
+final class BasicAuth implements BasicAuthInterface
 {
 
     /**
@@ -27,29 +29,30 @@ final class BasicAuth
     {
     }
 
+    /**
+     * return basic auth user credential
+     * 
+     * @return string 
+     */
     public function user()
     {
         return $this->user;
     }
 
 
-    public function password()
-    {
-        return $this->password;
-    }
-    
     /**
+     * return basic auth password credential
      * 
      * @return string 
      */
-    public function toAuthorizationHeader(): string
+    public function password()
     {
-        return sprintf("basic %s:%s", $this->user, $this->password);
+        return $this->password;
     }
 
 
     public function __toString()
     {
-        return $this->toAuthorizationHeader();
+        return sprintf("basic %s:%s", $this->user, $this->password);
     }
 }

@@ -16,12 +16,20 @@ namespace Drewlabs\HttpGuard;
 use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\Core\Helpers\Iter;
 
+/** @deprecated implementations does not depends on globals anymore */
 class Globals
 {
     /**
      * @var string
      */
     private static $nodesCachePath = __DIR__.'/../cache/node.sock';
+
+    /**
+     * Path serialized connected users are cached.
+     * 
+     * @var string
+     */
+    private static $cachePath = __DIR__.'/../cache/auth.dump';
 
     /**
      * @var array<string,string|array<int,string>>
@@ -53,13 +61,6 @@ class Globals
     private static $useCache = true;
 
     /**
-     * Path serialized connected users are cached.
-     * 
-     * @var string
-     */
-    private static $cachePath = __DIR__.'/../cache/auth.dump';
-
-    /**
      * @var array<string|string|int>
      */
     private static $redis = [
@@ -77,7 +78,7 @@ class Globals
     /**
      * @var string
      */
-    private static $authenticatable = User::class;
+    private static $authenticatable = LegacyUser::class;
 
     /**
      * possible values array|redis|memcahed.

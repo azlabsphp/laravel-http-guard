@@ -16,7 +16,7 @@ namespace Drewlabs\HttpGuard\OAuth2;
 use DateTimeInterface;
 use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\DateTime;
-use Drewlabs\HttpGuard\OAuth2\Facades\AuthProvider;
+use Drewlabs\HttpGuard\Facades\OAuth2Provider;
 use Override;
 
 final class AccessToken implements Token
@@ -74,7 +74,7 @@ final class AccessToken implements Token
     #[Override]
     public function revoke()
     {
-        return AuthProvider::revokeOAuthToken($this->value);
+        return OAuth2Provider::revokeOAuthToken($this->value);
     }
 
     #[Override]

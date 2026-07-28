@@ -15,30 +15,50 @@ namespace Drewlabs\HttpGuard;
 
 use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Core\Helpers\Arr;
-use Drewlabs\Core\Helpers\Reflector;
 use Drewlabs\HttpGuard\Contracts\UserFactory as AbstractUserFactory;
-use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
-use Drewlabs\HttpGuard\Traits\AttributesAware;
+use Drewlabs\Contracts\Auth\Authenticatable;
+use Exception;
+use InvalidArgumentException;
 
 class UserFactory implements AbstractUserFactory
 {
+    /** @var class-string<Authenticatable> */
+    private $model;
+
+    /** @var JsonProperties */
+    private $properties;
+
+    /**
+     * user factory class constructor
+     * 
+     * @param class-string<Authenticatable> $model 
+     * @return void 
+     * @throws Exception 
+     */
+    public function __construct($model, JsonProperties $properties)
+    {
+        $this->model = $model;
+        $this->properties = $properties;
+    }
+
     public function create(array $attributes = [], ?string $token = null)
     {
-        $class = Globals::authenticatable();
-        if (!class_exists($class) || !$this->isAttributeAware($class)) {
-            throw new \Exception('Authenticatable class must define a createFromAttributes static method or use '.AttributesAware::class.' trait!');
+        if (!class_exists($this->model)) {
+            throw new InvalidArgumentException(sprintf('%s class does not exists', $this->model));
         }
 
-        $user = forward_static_call([$class, 'createFromAttributes'], Arr::except($attributes, [Globals::accessTokenProperty()]));
+        $user = new User(
+            $this->getPropertyValue($attributes, $this->properties->getUserIdProperty()),
+            $this->getPropertyValue($attributes, $this->properties->getUsernameProperty()),
+            $this->getPropertyValue($attributes, $this->properties->getPasswordProperty()),
+            $this->getPropertyValue($attributes, $this->properties->getAuthorizationsProperty()),
+            $this->getPropertyValue($attributes, $this->properties->getGroupsProperty()),
+            $attributes
+        );
 
         if ($this->supportsTokens($user)) {
-            /** @var AccessToken */
-            $accessToken = AccessToken::createFromAttributes($attributes[Globals::accessTokenProperty()] ?? []);
-            if (null === $accessToken) {
-                throw new ServerBadResponseException('access token is required for authenticatable classes that supports token');
-            }
-            $accessToken->setAccessToken($token);
-            $user->withAccessToken($accessToken);
+            $accessToken = AccessToken::createFromAttributes($this->getPropertyValue($attributes, $this->properties->getAccessTokenProperty()) ?? []);
+            $user->withAccessToken($accessToken->setAccessToken($token));
         }
 
         return $user;
@@ -56,23 +76,16 @@ class UserFactory implements AbstractUserFactory
         return $tokenable instanceof HasApiTokens || (method_exists($tokenable, 'token') && method_exists($tokenable, 'withAccessToken'));
     }
 
-    /**
-     * 
-     * @param mixed $object 
-     * @return bool 
-     */
-    private function isAttributeAware($object)
-    {
-        $object = \is_object($object) ? get_class($object) : $object;
-        $isStatic = static function ($object, $method) {
-            try {
-                return (new \ReflectionMethod($object, $method))->isStatic();
-            } catch (\ReflectionException $e) {
-                return false;
-            }
-        };
 
-        return \count(array_intersect([AttributesAware::class, '\Drewlabs\Support\Traits\AttributesAware'], Reflector::usesRecursive($object))) > 0
-            || (method_exists($object, 'createFromAttributes') && $isStatic($object, 'createFromAttributes'));
+    /**
+     * return the value for the `property` attribute
+     * 
+     * @param array $attributes 
+     * @param string $property 
+     * @return mixed 
+     */
+    private function getPropertyValue(array $attributes, string $property)
+    {
+        return Arr::get($attributes, $property);
     }
 }

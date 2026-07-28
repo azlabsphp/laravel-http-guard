@@ -14,17 +14,13 @@ declare(strict_types=1);
 namespace Drewlabs\HttpGuard\OAuth2;
 
 use Closure;
+use Drewlabs\HttpGuard\Contracts\BasicAuthInterface;
+use Drewlabs\HttpGuard\Contracts\BasicAuthSeverInterface;
+use Drewlabs\HttpGuard\Traits\Server as ServerTrait;
 
-final class Server
+final class Server implements BasicAuthSeverInterface
 {
-    /** @var string */
-    private $me = 'api/me';
-
-    /** @var string */
-    private $token = 'oauth/token';
-
-    /** @var string */
-    private $logout = 'oauth/revoke';
+    use ServerTrait;
 
     /** @var BasicAuth */
     private $auth;
@@ -32,14 +28,20 @@ final class Server
     /** @var string */
     private $base_url;
 
+    /** @var string|Closure  */
+    private $base_url_factory;
+
     /**
      * creates server class instance
      * 
-     * @param string|Closure $base_url_factory
+     * @param string|Closure $base_url
      * 
      * @return void 
      */
-    public function __construct(private $base_url_factory) {}
+    public function __construct($base_url)
+    {
+        $this->base_url_factory = $base_url;
+    }
 
     /**
      * return the server base url
@@ -70,25 +72,9 @@ final class Server
     }
 
 
-    public function auth()
+    public function auth(): BasicAuthInterface
     {
         return $this->auth;
     }
 
-    public function mePath()
-    {
-        return $this->me;
-    }
-
-
-    public function tokenPath()
-    {
-        return $this->token;
-    }
-
-
-    public function revokePath()
-    {
-        return $this->logout;
-    }
 }

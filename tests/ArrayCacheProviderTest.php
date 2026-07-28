@@ -16,10 +16,10 @@ namespace Drewlabs\HttpGuard\Tests;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Core\Helpers\Rand;
 use Drewlabs\Core\Helpers\UUID;
-use Drewlabs\HttpGuard\ArrayCacheProvider;
+use Drewlabs\HttpGuard\CacheProvider;
 use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 use Drewlabs\HttpGuard\Globals;
-use Drewlabs\HttpGuard\User;
+use Drewlabs\HttpGuard\LegacyUser;
 use PHPUnit\Framework\TestCase;
 
 class ArrayCacheProviderTest extends TestCase
@@ -27,16 +27,16 @@ class ArrayCacheProviderTest extends TestCase
     public function test_load_create_new_instance()
     {
         $this->cleanup();
-        $instance = ArrayCacheProvider::load();
-        $this->assertInstanceOf(ArrayCacheProvider::class, $instance);
+        $instance = CacheProvider::load();
+        $this->assertInstanceOf(CacheProvider::class, $instance);
     }
 
     public function test_write_new_key_to_cache()
     {
         $this->cleanup();
-        $instance = ArrayCacheProvider::load();
+        $instance = CacheProvider::load();
         $id = UUID::create();
-        $user = User::createFromAttributes([
+        $user = LegacyUser::createFromAttributes([
             'username' => sprintf('USER%s', Rand::int(1000, 10000)),
             'is_verified' => true,
             'id' => $id,
@@ -48,9 +48,9 @@ class ArrayCacheProviderTest extends TestCase
     public function test_read_existing_key_from_cache_returns_a_user_instance()
     {
         $this->cleanup();
-        $instance = ArrayCacheProvider::load();
+        $instance = CacheProvider::load();
         $id = UUID::create();
-        $user = User::createFromAttributes([
+        $user = LegacyUser::createFromAttributes([
             'username' => sprintf('USER%s', Rand::int(1000, 10000)),
             'is_verified' => true,
             'id' => $id,
@@ -65,7 +65,7 @@ class ArrayCacheProviderTest extends TestCase
     {
         $this->cleanup();
         $this->expectException(AuthenticatableNotFoundException::class);
-        $instance = ArrayCacheProvider::load();
+        $instance = CacheProvider::load();
         $id = UUID::create();
         $this->assertNull($instance->read($id));
     }
@@ -73,17 +73,17 @@ class ArrayCacheProviderTest extends TestCase
     public function test_dump_write_instance_state_to_disk_and_load_resolve_the_written_state()
     {
         $this->cleanup();
-        $instance = ArrayCacheProvider::load();
+        $instance = CacheProvider::load();
         $id = UUID::create();
         Globals::usernameProperty('user_name');
-        $user = User::createFromAttributes([
+        $user = LegacyUser::createFromAttributes([
             'user_name' => sprintf('USER%s', Rand::int(1000, 10000)),
             'is_verified' => true,
             'id' => $id,
         ]);
         $instance->write($id, $user);
-        ArrayCacheProvider::dump($instance);
-        $instance2 = ArrayCacheProvider::load();
+        CacheProvider::dump($instance);
+        $instance2 = CacheProvider::load();
         $this->assertSame(count($instance->getState()), count($instance2->getState()));
         $this->assertSame($instance->read($id)->getAuthUserName(), $instance->read($id)->getAuthUserName());
         $this->assertSame($instance->read($id)->authIdentifier(), $instance->read($id)->authIdentifier());

@@ -13,32 +13,60 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard;
 
-use Drewlabs\Contracts\Auth\Authenticatable;
-use Drewlabs\Contracts\Auth\AuthorizationsAware;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
-use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
+use Drewlabs\HttpGuard\Traits\HasApiToken;
+use Drewlabs\Contracts\Auth\AuthorizationsAware;
 use Drewlabs\HttpGuard\Traits\AttributesAware;
 use Drewlabs\HttpGuard\Traits\Authenticatable as AuthTrait;
 use Drewlabs\HttpGuard\Traits\Authorizable;
-use Drewlabs\HttpGuard\Traits\ContainerAware;
-use Drewlabs\HttpGuard\Traits\HasApiToken;
-use Illuminate\Contracts\Auth\Authenticatable as AbstractAuthenticatable;
+use Override;
+use Drewlabs\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as BaseAuthenticatable;
 
-class User implements Authenticatable, AuthorizationsAware, AbstractAuthenticatable, HasApiTokens
+
+final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, BaseAuthenticatable
 {
-    use AttributesAware;
+    use HasApiToken;
     use Authorizable;
     use AuthTrait;
-    use ContainerAware;
-    use HasApiToken;
+    use AttributesAware;
 
-    private function __construct(array $attributes = [])
+    /** @var AccessToken */
+    private $accessToken;
+
+    /** @var string|int */
+    private $id;
+
+    /** @var string */
+    private $username;
+
+    /** @var string|null */
+    private $password;
+
+    /** @var string[] */
+    private $authorizations;
+
+    /** @var string[] */
+    private $groups;
+
+    /**
+     * creates a user class instance
+     * 
+     * @param string $sub 
+     * @param string $name 
+     * @param null|string $password
+     * 
+     * @return void 
+     */
+    public function __construct(string $sub, string $name, ?string $password  = null, array $authorizations = [], array $groups = [], array $attributes = [])
     {
-        foreach ($attributes as $key => $value) {
-            $this->attributes[$key] = $value;
-        }
+        $this->id = $sub;
+        $this->username = $name;
+        $this->password = $password;
+        $this->authorizations = $authorizations;
+        $this->groups = $groups;
 
-        $this->validateAttributes();
+        $this->setAttributes($attributes);
     }
 
     /**
@@ -65,67 +93,58 @@ class User implements Authenticatable, AuthorizationsAware, AbstractAuthenticata
         return $this->accessToken->expiresAt();
     }
 
-    public function validateAttributes()
-    {
-        $passes = null !== $this->getAuthIdentifier() && $this->isVerified() && null !== $this->getAuthUserName();
-        if (!$passes) {
-            throw new ServerBadResponseException('missing required attributes');
-        }
-    }
-
+    #[Override]
     public function getAuthIdentifierName()
     {
         return $this->authIdentifierName();
     }
 
-    public function rememberTokenName()
-    {
-        return Globals::rememberTokenProperty();
-    }
-
-    public function getRememberTokenName()
-    {
-        return $this->rememberTokenName();
-    }
-
-    public function authIdentifierName()
-    {
-        return Globals::userIdProperty();
-    }
-
-
-    public function authPasswordName()
-    {
-        return Globals::passwordProperty();
-    }
-
+    #[Override]
     public function getAuthPasswordName()
     {
         return $this->authPasswordName();
     }
 
+    #[Override]
+    public function getRememberTokenName()
+    {
+        return $this->rememberTokenName();
+    }
+
+    #[Override]
+    public function authIdentifierName()
+    {
+        return 'id';
+    }
+
+    #[Override]
+    public function authPasswordName()
+    {
+        return 'password';
+    }
+
+    #[Override]
+    public function rememberTokenName()
+    {
+        return 'remember_token';
+    }
+
+    #[Override]
     public function getAuthUserName()
     {
-        return $this->getAttribute(Globals::usernameProperty());
+        return 'username';
     }
 
+    #[Override]
     public function getAuthorizations(): array
     {
-        return $this->getAttribute(Globals::authorizationsProperty()) ?? [];
+        return $this->authorizations;
     }
 
+    #[Override]
     public function getAuthorizationGroups(): array
     {
-        return $this->getAttribute(Globals::groupsProperty()) ?? [];
+        return $this->groups;
     }
 
-    public function setAuthorizations(array $value = [])
-    {
-        $this->setAttribute(Globals::authorizationsProperty(), $value);
-    }
-
-    public function setAuthorizationGroups(array $value = [])
-    {
-        $this->setAttribute(Globals::groupsProperty(), $value);
-    }
 }

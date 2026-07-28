@@ -17,7 +17,7 @@ use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 
-class ArrayCacheProvider implements AuthenticatableCacheProvider
+class CacheProvider implements AuthenticatableCacheProvider
 {
     /** @var array<string,Authenticatable> */
     private $state = [];
@@ -66,7 +66,7 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
     public function prune()
     {
         foreach ($this->state ?? [] as $key => $value) {
-            if (($value instanceof User) && $value->tokenExpires()) {
+            if (($value instanceof LegacyUser) && $value->tokenExpires()) {
                 unset($this->state[$key]);
             }
         }
@@ -115,7 +115,7 @@ class ArrayCacheProvider implements AuthenticatableCacheProvider
 
     public function __destruct()
     {
-        ArrayCacheProvider::dump($this);
+        CacheProvider::dump($this);
     }
 
     private function resolveKey(string $key)

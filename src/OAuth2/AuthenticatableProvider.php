@@ -21,9 +21,11 @@ use Drewlabs\HttpGuard\Exceptions\AuthorizationException;
 use Drewlabs\HttpGuard\Exceptions\ServerException;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\Contracts\OAuth\PersonalAccessToken;
-use Drewlabs\HttpGuard\ArrayCacheProvider;
+use Drewlabs\HttpGuard\CacheProvider;
+use Drewlabs\HttpGuard\Contracts\BasicAuthSeverInterface;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
+use Drewlabs\HttpGuard\User;
 
 // $this->baseUrl      = Config::get('oauth_service.base_url');
 // $this->clientId     = Config::get('oauth_service.client_id');
@@ -37,18 +39,18 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     /** @var AuthenticatableCacheProvider|\Closure */
     private $cache;
 
-    /** @var Server */
+    /** @var BasicAuthSeverInterface */
     private $server;
 
     /**
      * creates authenticatable provider
      * 
-     * @param Server $server
+     * @param BasicAuthSeverInterface $server
      * @param AuthenticatableCacheProvider|\Closure $cache
      * 
      * @return void 
      */
-    public function __construct(Server $server, $cache = null) {
+    public function __construct(BasicAuthSeverInterface $server, $cache = null) {
         $this->cache = $cache;
         $this->server = $server;
     }
@@ -59,7 +61,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         /** @var PersonalAccessToken|null */
         $authToken = null;
         try {
-            $response = Http::new(['base_url' => $this->server->getBaseUrl()])
+            $response = Http::new()
                 ->withBasicAuth($this->server->auth()->user(), $this->server->auth()->password())
                 ->setHeader('Content-Type', 'application/x-www-form-urlencoded')
                 ->post($this->server->tokenPath(), ['grant_type' => 'bearer_token', 'token' => $token]);
@@ -97,7 +99,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
         /** @var Authenticatable|null */
         $user = null;
-        $userResponse = Http::new(['base_url' => $this->server->getBaseUrl()])->withBearerToken($token)->get($this->server->mePath());
+        $userResponse = Http::new()->withBearerToken($token)->get($this->server->mePath());
 
         if ($userResponse->getStatusCode() >= 200 && $userResponse->getStatusCode() < 300) {
             $json = $response->getJson();
@@ -120,7 +122,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     #[\Override]
     public function revokeOAuthToken(string $token): bool
     {
-        $response = Http::new(['base_url' => $this->server->getBaseUrl()])
+        $response = Http::new()
             ->withBearerToken($token)
             ->get($this->server->revokePath(), ['params' => ['revoked' => true]]);
 
@@ -145,9 +147,9 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
     public function __destruct()
     {
-        if (($cache = $this->cache) instanceof ArrayCacheProvider) {
+        if (($cache = $this->cache) instanceof CacheProvider) {
             $cache->prune();
-            ArrayCacheProvider::dump($cache);
+            CacheProvider::dump($cache);
         }
     }
 

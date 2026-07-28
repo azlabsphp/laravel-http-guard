@@ -25,27 +25,28 @@ use Illuminate\Http\Request;
 
 class Guard
 {
-    /**
-     * The authentication factory implementation.
-     *
-     * @var AuthFactory
-     */
+    /** @var AuthFactory */
     private $auth;
 
-    /**
-     * @var ApiTokenAuthenticatableProvider
-     */
+    /** @var ApiTokenAuthenticatableProvider */
     private $provider;
+
+    /** @var string|string[] */
+    private $guards;
 
     /**
      * creates a new guard instance.
+     * 
+     * 
+     * @param string|string[] $guards
      *
      * @return static
      */
-    public function __construct(AuthFactory $auth, ApiTokenAuthenticatableProvider $provider)
+    public function __construct(AuthFactory $auth, ApiTokenAuthenticatableProvider $provider, $guards)
     {
         $this->auth = $auth;
         $this->provider = $provider;
+        $this->guards = $guards;
     }
 
     /**
@@ -58,13 +59,12 @@ class Guard
     public function __invoke($request)
     {
         try {
-            foreach (Arr::wrap(Globals::defaultGuards()) as $guard) {
+            foreach (Arr::wrap($this->guards) as $guard) {
                 if ($user = $this->auth->guard($guard)->user()) {
                     return $this->supportsTokens($user) ? $this->castAsHasApiTokens($user)->withAccessToken(new TransientToken()) : $user;
                 }
             }
-        } catch (\Throwable $e) {
-        }
+        } catch (\Throwable $e) { }
 
         if (!$token = $request->bearerToken()) {
             return null;

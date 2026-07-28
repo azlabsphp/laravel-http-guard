@@ -15,7 +15,7 @@ namespace Drewlabs\HttpGuard\Tests;
 
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
-use Drewlabs\HttpGuard\User;
+use Drewlabs\HttpGuard\LegacyUser;
 use PHPUnit\Framework\TestCase;
 
 class UserTest extends TestCase
@@ -62,7 +62,7 @@ class UserTest extends TestCase
                 'iss' => 'IDENTITY WEB SERVICE',
             ],
         ];
-        $user = User::createFromAttributes($attributes);
+        $user = LegacyUser::createFromAttributes($attributes);
         $this->assertInstanceOf(Authenticatable::class, $user);
     }
 
@@ -73,7 +73,7 @@ class UserTest extends TestCase
             'version' => 'v1.0.0',
             'id' => 1,
         ];
-        $user = User::createFromAttributes($attributes);
+        $user = LegacyUser::createFromAttributes($attributes);
         $this->assertInstanceOf(Authenticatable::class, $user);
     }
 }

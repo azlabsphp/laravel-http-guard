@@ -11,14 +11,14 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Drewlabs\HttpGuard;
+namespace Drewlabs\HttpGuard\Memcached;
 
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Core\Helpers\DateTime;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 
-class MemcachedCacheProvider implements AuthenticatableCacheProvider
+class Client implements AuthenticatableCacheProvider
 {
     /** @var \Memcached */
     private $client;
@@ -42,7 +42,7 @@ class MemcachedCacheProvider implements AuthenticatableCacheProvider
 
     public function write(string $id, Authenticatable $user)
     {
-        $expiresAt = $user instanceof User ? new \DateTimeImmutable($user->tokenExpiresAt()) : null;
+        $expiresAt = $user instanceof LegacyUser ? new \DateTimeImmutable($user->tokenExpiresAt()) : null;
         $expires = $expiresAt ? DateTime::secsDiff($expiresAt, DateTime::now()) : null;
         if ($expires && ($expires <= 0)) {
             return;

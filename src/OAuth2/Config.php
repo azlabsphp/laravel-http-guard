@@ -1,9 +1,0 @@
-<?php
-
-
-
-final class Config
-{
-
-    
-}
