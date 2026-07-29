@@ -35,7 +35,7 @@ final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, 
     /** @var string|int */
     private $id;
 
-    /** @var string */
+    /** @var string|null */
     private $username;
 
     /** @var string */
@@ -54,12 +54,12 @@ final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, 
      * creates a user class instance
      * 
      * @param string|int $sub 
-     * @param string $name 
+     * @param string|null $name 
      * @param null|string $password
      * 
      * @return void 
      */
-    public function __construct($sub, string $name, ?string $password  = null, array $authorizations = [], array $groups = [], array $attributes = [])
+    public function __construct($sub, ?string $name = null, ?string $password  = null, array $authorizations = [], array $groups = [], array $attributes = [])
     {
         $this->id = $sub;
         $this->username = $name;

@@ -42,7 +42,8 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
      * 
      * @return void 
      */
-    public function __construct(BasicAuthSeverInterface $server, $cache = null) {
+    public function __construct(BasicAuthSeverInterface $server, $cache = null)
+    {
         $this->cache = $cache;
         $this->server = $server;
     }
@@ -52,33 +53,45 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     {
         /** @var PersonalAccessToken|null */
         $authToken = null;
+
+        /** @var User|null */
+        $user = null;
+
         try {
             $response = Http::new()
                 ->withBasicAuth($this->server->auth()->user(), $this->server->auth()->password())
                 ->asUrlEncoded()
                 ->post($this->server->tokenPath(), ['grant_type' => 'bearer_token', 'token' => $token]);
 
-            if ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300) {
-                $json = $response->getJson();
-                $expiresAt = null;
-                $scopes = [];
+            if (!$response->ok()) {
+                throw new ServerBadResponseException($response);
+            }
 
-                if (isset($json['expires_at']) && is_int($json['expires_at'])) {
-                    $expiresAt = (new \DateTimeImmutable())->setTimestamp($json['expires_at']);
-                }
+            $json = $response->getJson();
 
-                if (isset($json['scopes'])) {
-                    $scopes = \is_string($json['scopes']) ? str_split($json['scopes']) : $json['scopes'];
-                }
+            $expiresAt = null;
+            $scopes = [];
 
-                if (isset($json['scope'])) {
-                    $scopes = \is_string($json['scope']) ? str_split($json['scope']) : $json['scope'];
-                }
+            if (isset($json['expires_at']) && is_int($json['expires_at'])) {
+                $expiresAt = (new \DateTimeImmutable())->setTimestamp($json['expires_at']);
+            }
 
-                $authToken = new AccessToken($token, $scopes, $expiresAt);
+            if (isset($json['scopes'])) {
+                $scopes = \is_string($json['scopes']) ? str_split($json['scopes']) : $json['scopes'];
+            }
+
+            if (isset($json['scope'])) {
+                $scopes = \is_string($json['scope']) ? str_split($json['scope']) : $json['scope'];
+            }
+
+            $authToken = new AccessToken($token, $scopes, $expiresAt);
+
+            # create a temporary user from the token sub property
+            if (array_key_exists('sub', $json)) {
+                $user = new User($json['sub'], null);
             }
         } catch (\Throwable $e) {
-            
+
             $user = is_null($authToken = $this->handleError($e, $token)) ? $this->loadFromCache($token) : null;
             if (!is_null($user)) {
                 return $user;
@@ -87,40 +100,46 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             throw new ServerException($e->getMessage(), $e->getCode(), $e);
         }
 
+
         if (is_null($authToken)) {
             throw new AuthorizationException($token, 401);
         }
 
-        /** @var Authenticatable|null */
-        $user = null;
-        $userResponse = Http::new()->withBearerToken($token)->get($this->server->mePath());
+        try {
+            $userResponse = Http::new()->withBearerToken($token)->get($this->server->mePath());
+            if (!$userResponse->ok()) {
+                throw new ServerBadResponseException($userResponse);
+            }
 
-        if ($userResponse->getStatusCode() >= 200 && $userResponse->getStatusCode() < 300) {
-            $json = $response->getJson();
+            $json = $userResponse->getJson();
             if (array_key_exists('sub', $json) && array_key_exists('name', $json)) {
                 $user = new User($json['sub'], $json['name'], null, [], [], $json);
-                $user = $user->withAccessToken($authToken);
             }
-        } else {
-
-            throw new ServerBadResponseException($userResponse->getReasonPhrase(), $userResponse->getStatusCode());
+        } catch (\Throwable $e) {
+            throw new ServerException($e->getMessage(), $e->getCode(), $e);
         }
 
         if (is_null($user)) {
-            throw new ServerBadResponseException('user not found', 400);
+            throw new ServerException('user not found', 400);
         }
 
-        return $user;
+        return $user->withAccessToken($authToken);
     }
 
     #[\Override]
     public function revokeOAuthToken(string $token): bool
     {
-        $response = Http::new()
-            ->withBearerToken($token)
-            ->get($this->server->revokePath(), ['params' => ['revoked' => true]]);
+        try {
 
-        return $response->getStatusCode() >= 200 && $response->getStatusCode() < 300;
+            $response = Http::new()
+                ->withBearerToken($token)
+                ->get($this->server->revokePath(), ['params' => ['revoked' => true]]);
+
+            return $response->ok();
+
+        } catch (BadRequestException $e) {
+            throw new ServerBadResponseException($e->getResponse());
+        }
     }
 
 
