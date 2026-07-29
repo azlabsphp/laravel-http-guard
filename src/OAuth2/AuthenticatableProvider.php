@@ -55,7 +55,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         try {
             $response = Http::new()
                 ->withBasicAuth($this->server->auth()->user(), $this->server->auth()->password())
-                ->setHeader('Content-Type', 'application/x-www-form-urlencoded')
+                ->asUrlEncoded()
                 ->post($this->server->tokenPath(), ['grant_type' => 'bearer_token', 'token' => $token]);
 
             if ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300) {
@@ -78,8 +78,10 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 $authToken = new AccessToken($token, $scopes, $expiresAt);
             }
         } catch (\Throwable $e) {
-            if (is_null($authToken =  $this->handleError($e, $token))) {
-                return $this->loadFromCache($token);
+            
+            $user = is_null($authToken = $this->handleError($e, $token)) ? $this->loadFromCache($token) : null;
+            if (!is_null($user)) {
+                return $user;
             }
 
             throw new ServerException($e->getMessage(), $e->getCode(), $e);
@@ -124,11 +126,14 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
     public function loadFromCache(string $token)
     {
-        $cacheProvider = $this->getCache();
-        $user = $cacheProvider->read($token);
+        if (is_null($cache = $this->getCache())) {
+            return null;
+        }
+
+        $user = $cache->read($token);
         if ($user instanceof User && $user->tokenExpires()) {
 
-            $cacheProvider->delete($token);
+            $cache->delete($token);
             throw new TokenExpiresException($token);
         }
 

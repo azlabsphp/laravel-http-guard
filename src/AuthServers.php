@@ -66,9 +66,9 @@ final class AuthServers
         }
     }
 
-    public static function getPrimaryServer(string $writePath, string $primaryServer)
+    public static function getPrimaryServer(string $path, ?string $primaryServer = null)
     {
-        if (false === ($host = @file_get_contents($writePath))) {
+        if (false === ($host = @file_get_contents($path))) {
             $host = $primaryServer;
         }
 
