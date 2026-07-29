@@ -28,7 +28,7 @@ interface ApiTokenAuthenticatableProvider
      * @throws AuthorizationException
      * @throws ServerException
      */
-    public function getByOAuthToken(string $token): ?Authenticatable;
+    public function getByOAuthToken(string $token): Authenticatable;
 
     /**
      * Revoke the connected user auth token.
@@ -39,5 +39,5 @@ interface ApiTokenAuthenticatableProvider
      *
      * @return void
      */
-    public function revokeOAuthToken(string $token);
+    public function revokeOAuthToken(string $token): void;
 }

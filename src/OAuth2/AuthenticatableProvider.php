@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard\OAuth2;
 
+use Closure;
 use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Curl\REST\Client as Http;
@@ -28,7 +29,7 @@ use Drewlabs\HttpGuard\User;
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 {
-    /** @var AuthenticatableCacheProvider|\Closure */
+    /** @var AuthenticatableCacheProvider|\Closure|null */
     private $cache;
 
     /** @var BasicAuthSeverInterface */
@@ -68,21 +69,14 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             }
 
             $json = $response->getJson();
-
             $expiresAt = null;
-            $scopes = [];
 
             if (isset($json['expires_at']) && is_int($json['expires_at'])) {
                 $expiresAt = (new \DateTimeImmutable())->setTimestamp($json['expires_at']);
             }
 
-            if (isset($json['scopes'])) {
-                $scopes = \is_string($json['scopes']) ? str_split($json['scopes']) : $json['scopes'];
-            }
-
-            if (isset($json['scope'])) {
-                $scopes = \is_string($json['scope']) ? str_split($json['scope']) : $json['scope'];
-            }
+            $rawScopes = $json['scopes'] ?? $json['scope'] ?? [];
+            $scopes = \is_string($rawScopes) ? explode(' ', $rawScopes) : $rawScopes;
 
             $authToken = new AccessToken($token, $scopes, $expiresAt);
 
@@ -92,12 +86,11 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             }
         } catch (\Throwable $e) {
 
-            $user = is_null($authToken = $this->handleError($e, $token)) ? $this->loadFromCache($token) : null;
-            if (!is_null($user)) {
+            if (!is_null($user = $this->handleError($e, $token))) {
                 return $user;
             }
 
-            throw new ServerException($e->getMessage(), $e->getCode(), $e);
+            throw new ServerException($e->getMessage(), (int)$e->getCode(), $e);
         }
 
 
@@ -116,18 +109,28 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 $user = new User($json['sub'], $json['name'], null, [], [], $json);
             }
         } catch (\Throwable $e) {
-            throw new ServerException($e->getMessage(), $e->getCode(), $e);
+            if (is_null($user)) {
+                throw new ServerException($e->getMessage(), (int)$e->getCode(), $e);
+            }
+
+            trigger_error("failed to fetch user info from authentication server, using a transient user with only user id", E_USER_WARNING);
         }
 
         if (is_null($user)) {
             throw new ServerException('user not found', 400);
         }
 
-        return $user->withAccessToken($authToken);
+        $user = $user->withAccessToken($authToken);
+
+        if (($cache = $this->getCache())) {
+            $cache->write($token, $user);
+        }
+
+        return $user;
     }
 
     #[\Override]
-    public function revokeOAuthToken(string $token): bool
+    public function revokeOAuthToken(string $token): void
     {
         try {
 
@@ -135,23 +138,32 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 ->withBearerToken($token)
                 ->get($this->server->revokePath(), ['params' => ['revoked' => true]]);
 
-            return $response->ok();
+            $ok = $response->ok();
 
+            if (!$ok) {
+                throw new ServerBadResponseException($response);
+            }
+
+            if (!is_null($cache = $this->getCache())) {
+                $cache->delete($token);
+            }
         } catch (BadRequestException $e) {
             throw new ServerBadResponseException($e->getResponse());
         }
     }
 
 
-    public function loadFromCache(string $token)
+    public function loadFromCache(string $token): ?Authenticatable
     {
         if (is_null($cache = $this->getCache())) {
             return null;
         }
 
-        $user = $cache->read($token);
-        if ($user instanceof User && $user->tokenExpires()) {
+        if (is_null($user = $cache->read($token))) {
+            return $user;
+        }
 
+        if ($user instanceof User && $user->tokenExpires()) {
             $cache->delete($token);
             throw new TokenExpiresException($token);
         }
@@ -159,10 +171,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
         return $user;
     }
 
-    /**
-     * @return AuthenticatableCacheProvider
-     */
-    private function getCache()
+    private function getCache(): ?AuthenticatableCacheProvider
     {
         if (is_a($this->cache, \Closure::class)) {
             $this->cache = call_user_func($this->cache);
@@ -172,15 +181,15 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
     }
 
 
-    private function handleError(\Throwable $e, string $token)
+    private function handleError(\Throwable $e, string $token): ?Authenticatable
     {
         if ($e instanceof BadRequestException) {
             $response = $e->getResponse();
             if (401 === $response->getStatus()) {
                 throw new AuthorizationException($token, $response->getStatus());
             }
-
-            return null;
         }
+
+        return $this->loadFromCache($token);
     }
 }

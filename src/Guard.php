@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard;
 
+use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Contracts\OAuth\HasApiTokens;
 use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
@@ -21,6 +22,7 @@ use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\HttpGuard\Exceptions\AuthorizationException;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
+use Illuminate\Contracts\Auth\Authenticatable as BaseAuthenticatable;
 use Illuminate\Http\Request;
 
 class Guard
@@ -54,9 +56,9 @@ class Guard
      *
      * @param Request $request
      *
-     * @return mixed
+     * @return Authenticatable|HasApiTokens|BaseAuthenticatable|null
      */
-    public function __invoke($request)
+    public function __invoke($request): Authenticatable|HasApiTokens|BaseAuthenticatable|null
     {
         try {
             foreach (Arr::wrap($this->guards) as $guard) {
@@ -64,7 +66,8 @@ class Guard
                     return $this->supportsTokens($user) ? $this->castAsHasApiTokens($user)->withAccessToken(new TransientToken()) : $user;
                 }
             }
-        } catch (\Throwable $e) { }
+        } catch (\Throwable $e) {
+        }
 
         if (!$token = $request->bearerToken()) {
             return null;
@@ -73,11 +76,8 @@ class Guard
 
         try {
             return $this->provider->getByOAuthToken($token);
-        } catch (\Exception $e) {
-            if ($e instanceof AuthenticatableNotFoundException || $e instanceof TokenExpiresException || $e instanceof AuthorizationException || $e instanceof ServerBadResponseException) {
-                return null;
-            }
-            throw $e;
+        } catch (AuthenticatableNotFoundException | TokenExpiresException | AuthorizationException | ServerBadResponseException $e) {
+            return null;
         }
     }
 
@@ -88,7 +88,7 @@ class Guard
      *
      * @return bool
      */
-    protected function supportsTokens($tokenable = null)
+    protected function supportsTokens($tokenable = null): bool
     {
         return $tokenable instanceof HasApiTokens || method_exists($tokenable, 'withAccessToken');
     }
