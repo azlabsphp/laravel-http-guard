@@ -31,7 +31,7 @@
     "prefer-stable": true,
     "require": {
         "php": "^8.2",
-        "drewlabs/contracts": "^0.4",
+        "drewlabs/contracts": "^0.4.3",
         "drewlabs/core-helpers": "^0.4",
         "drewlabs/curl-rest-client": "^0.3.0|^0.4.0",
         "illuminate/auth": "^11.0|^12.0|^13.0"

@@ -48,7 +48,7 @@ class UserTest extends TestCase
                 'iss' => 'IDENTITY WEB SERVICE',
             ],
         ];
-        $user = new User(1, 'APPSYSADMIN', null, ['all', 'sys:all'], ['SYSADMIN'], $attributes);
+        $user = new User(1, 'APPSYSADMIN', null, null, ['all', 'sys:all'], ['SYSADMIN'], $attributes);
         $this->assertInstanceOf(Authenticatable::class, $user);
     }
 }

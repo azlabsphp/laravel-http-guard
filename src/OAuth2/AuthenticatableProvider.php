@@ -82,7 +82,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
             # create a temporary user from the token sub property
             if (array_key_exists('sub', $json)) {
-                $user = new User($json['sub'], null);
+                $user = new User($json['sub']);
             }
         } catch (\Throwable $e) {
 
@@ -106,7 +106,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
 
             $json = $userResponse->getJson();
             if (array_key_exists('sub', $json) && array_key_exists('name', $json)) {
-                $user = new User($json['sub'], $json['name'], null, [], [], $json);
+                $user = new User($json['sub'], $json['name'], $json['email'] ?? null, null, [], [], $json);
             }
         } catch (\Throwable $e) {
             if (is_null($user)) {

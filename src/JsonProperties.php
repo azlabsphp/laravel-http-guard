@@ -15,27 +15,37 @@ namespace Drewlabs\HttpGuard;
 
 final class JsonProperties
 {
-    /** @var string */
-    private $accessTokenProperty = 'accessToken';
+    /**
+     * Creates a new JSON properties mapping instance.
+     *
+     * @param string $accessTokenProperty
+     * @param string $userIdProperty
+     * @param string $usernameProperty
+     * @param string $emailProperty
+     * @param string $rememberTokenProperty
+     * @param string $passwordProperty
+     * @param string $authorizationsProperty
+     * @param string $groupsProperty
+     */
+    public function __construct(
+        private string $accessTokenProperty = 'accessToken',
+        private string $userIdProperty = 'id',
+        private string $usernameProperty = 'username',
+        private string $emailProperty = 'email',
+        private string $rememberTokenProperty = 'remember_token',
+        private string $passwordProperty = 'password',
+        private string $authorizationsProperty = 'authorizations',
+        private string $groupsProperty = 'roles'
+    ) {
+    }
 
-    /** @var string */
-    private $usernameProperty = 'username';
-
-    /** @var string */
-    private $userIdProperty = 'id';
-
-    /** @var string */
-    private $rememberTokenProperty = 'remember_token';
-
-    /** @var string */
-    private $passwordProperty = 'password';
-
-    /** @var string */
-    private $authorizationsProperty = 'authorizations';
-
-    /** @var string */
-    private $groupsProperty = 'roles';
-
+    /**
+     * Creates a new instance fluently.
+     */
+    public static function new(): self
+    {
+        return new self();
+    }
 
     public function getAccessTokenProperty(): string
     {
@@ -56,6 +66,17 @@ final class JsonProperties
     public function setUsernameProperty(string $value): self
     {
         $this->usernameProperty = $value;
+        return $this;
+    }
+
+    public function getEmailProperty(): string
+    {
+        return $this->emailProperty;
+    }
+
+    public function setEmailProperty(string $value): self
+    {
+        $this->emailProperty = $value;
         return $this;
     }
 

@@ -50,6 +50,7 @@ class UserFactory implements AbstractUserFactory
         $user = new User(
             $this->getPropertyValue($attributes, $this->properties->getUserIdProperty()),
             $this->getPropertyValue($attributes, $this->properties->getUsernameProperty()),
+            $this->getPropertyValue($attributes, $this->properties->getEmailProperty()),
             $this->getPropertyValue($attributes, $this->properties->getPasswordProperty()),
             $this->getPropertyValue($attributes, $this->properties->getAuthorizationsProperty()),
             $this->getPropertyValue($attributes, $this->properties->getGroupsProperty()),

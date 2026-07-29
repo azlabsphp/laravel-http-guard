@@ -20,23 +20,28 @@ use Drewlabs\HttpGuard\Traits\AttributesAware;
 use Drewlabs\HttpGuard\Traits\Authorizable;
 use Override;
 use Drewlabs\Contracts\Auth\Authenticatable;
+use Drewlabs\Contracts\Auth\OpenIDUserInterface;
 use Illuminate\Contracts\Auth\Authenticatable as BaseAuthenticatable;
+use Drewlabs\HttpGuard\Contracts\Token;
 
 
-final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, BaseAuthenticatable
+final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, BaseAuthenticatable, OpenIDUserInterface
 {
     use HasApiToken;
     use Authorizable;
     use AttributesAware;
 
-    /** @var AccessToken */
+    /** @var Token */
     private $accessToken;
 
     /** @var string|int */
     private $id;
 
     /** @var string|null */
-    private $username;
+    private $name;
+
+    /** @var string|null */
+    private $email;
 
     /** @var string */
     private $remember = null;
@@ -55,19 +60,71 @@ final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, 
      * 
      * @param string|int $sub 
      * @param string|null $name 
+     * @param string|null $email
      * @param null|string $password
      * 
      * @return void 
      */
-    public function __construct($sub, ?string $name = null, ?string $password  = null, array $authorizations = [], array $groups = [], array $attributes = [])
+    public function __construct($sub, ?string $name = null, ?string $email = null, ?string $password  = null, array $authorizations = [], array $groups = [], array $attributes = [])
     {
         $this->id = $sub;
-        $this->username = $name;
+        $this->name = $name;
+        $this->email = $email;
         $this->password = $password;
         $this->authorizations = $authorizations;
         $this->groups = $groups;
 
-        $this->setAttributes($attributes);
+        $this->setAttributes($attributes ?? []);
+    }
+
+    #[Override]
+    public function getSubject()
+    {
+        return $this->id;
+    }
+
+    #[Override]
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    #[Override]
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    #[Override]
+    public function getClaims(): array
+    {
+        return $this->attributes;
+    }
+
+    #[Override]
+    public function getClaim(string $key, $default = null)
+    {
+        throw new \Exception('Not implemented');
+    }
+
+    #[Override]
+    public function getScopes(): array
+    {
+        if ($accessToken = $this->accessToken) {
+            return $accessToken->getScopes();
+        }
+
+        return [];
+    }
+
+    #[Override]
+    public function hasScope(string $scope): bool
+    {
+        if ($accessToken = $this->accessToken) {
+            return $accessToken->can($scope);
+        }
+
+        return false;
     }
 
     /**
@@ -89,11 +146,6 @@ final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, 
         return $this->accessToken->expires();
     }
 
-    public function tokenExpiresAt()
-    {
-        return $this->accessToken->expiresAt();
-    }
-
     #[Override]
     public function getAuthIdentifierName()
     {
@@ -109,7 +161,7 @@ final class User implements HasApiTokens, Authenticatable, AuthorizationsAware, 
     #[Override]
     public function getAuthUserName()
     {
-        return $this->username;
+        return $this->name;
     }
 
     #[Override]

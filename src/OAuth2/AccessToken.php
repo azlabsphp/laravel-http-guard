@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Drewlabs\HttpGuard\OAuth2;
 
 use DateTimeInterface;
-use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\DateTime;
+use Drewlabs\HttpGuard\Contracts\Token;
 use Drewlabs\HttpGuard\Facades\OAuth2Provider;
 use Override;
 
@@ -45,13 +45,19 @@ final class AccessToken implements Token
         $this->expiresAt = $expiresAt;
     }
 
+    #[Override]
+    public function getScopes(): array
+    {
+        return $this->scopes;
+    }
+
 
     /**
      * checks whether the token has expire.
      *
      * @return bool
      */
-    public function expires()
+    public function expires(): bool
     {
         if (is_null($expiresAt = $this->expiresAt())) {
             return true;
@@ -65,7 +71,7 @@ final class AccessToken implements Token
      *
      * @return ?DateTimeInterface
      */
-    public function expiresAt(): ?DateTimeInterface
+    private function expiresAt(): ?DateTimeInterface
     {
         return $this->expiresAt;
     }

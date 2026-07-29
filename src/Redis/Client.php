@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Drewlabs\HttpGuard\Redis;
 
 use Drewlabs\Contracts\Auth\Authenticatable;
-use Drewlabs\Core\Helpers\DateTime;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\HttpGuard\Exceptions\AuthenticatableNotFoundException;
 use Predis\Client as Redis;
@@ -46,13 +45,8 @@ class Client implements AuthenticatableCacheProvider
         if ($this->client->exists($id)) {
             $this->client->del($id);
         }
-        $expiresAt = $user instanceof LegacyUser ? new \DateTimeImmutable($user->tokenExpiresAt()) : null;
-        $expires = $expiresAt ? DateTime::secsDiff($expiresAt, DateTime::now()) : null;
-        if ($expires && ($expires <= 0)) {
-            return;
-        }
+        
         $this->client->set($id, serialize($user));
-        $this->client->expire($id, $expires);
     }
 
     public function read(string $id): Authenticatable

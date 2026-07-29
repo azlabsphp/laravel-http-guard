@@ -35,7 +35,7 @@ class ArrayCacheProviderTest extends TestCase
         $this->cleanup();
         $instance = CacheProvider::load(__DIR__ . '/../cache/auth.dump');
         $id = UUID::create();
-        $user = new User($id, sprintf('USER%s', Rand::int(1000, 10000)), null, [], [], ['is_verified' => true]);
+        $user = new User($id, sprintf('USER%s', Rand::int(1000, 10000)), null, null, [], [], ['is_verified' => true]);
         $instance->write($id, $user);
         $this->assertCount(1, $instance->getState());
     }
@@ -45,7 +45,7 @@ class ArrayCacheProviderTest extends TestCase
         $this->cleanup();
         $instance = CacheProvider::load(__DIR__ . '/../cache/auth.dump');
         $id = UUID::create();
-        $user = new User($id, sprintf('USER%s', Rand::int(1000, 10000)), null, [], [], ['is_verified' => true]);
+        $user = new User($id, sprintf('USER%s', Rand::int(1000, 10000)), null, null, [], [], ['is_verified' => true]);
         $instance->write($id, $user);
 
         $this->assertInstanceOf(Authenticatable::class, $instance->read($id));
@@ -66,7 +66,7 @@ class ArrayCacheProviderTest extends TestCase
         $this->cleanup();
         $instance = CacheProvider::load(__DIR__ . '/../cache/auth.dump');
         $id = UUID::create();
-        $user = new User($id, sprintf('USER%s', Rand::int(1000, 10000)), null, [], [], ['is_verified' => true]);
+        $user = new User($id, sprintf('USER%s', Rand::int(1000, 10000)), null, null, [], [], ['is_verified' => true]);
         $instance->write($id, $user);
         CacheProvider::dump($instance->getState(), $instance->getPath());
         $instance2 = CacheProvider::load(__DIR__ . '/../cache/auth.dump');

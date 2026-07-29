@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Drewlabs\HttpGuard;
 
-use Drewlabs\Contracts\OAuth\Token;
 use Drewlabs\Core\Helpers\Arr;
 use Drewlabs\Core\Helpers\DateTime;
+use Drewlabs\HttpGuard\Contracts\Token;
 use Drewlabs\HttpGuard\Facades\LegacyAuthProvider;
 use Drewlabs\HttpGuard\Traits\AttributesAware;
 use Drewlabs\HttpGuard\Traits\ContainerAware;
@@ -45,33 +45,33 @@ class AccessToken implements Token
         return false;
     }
 
-    public function abilities()
+    #[\Override]
+    public function getScopes(): array
     {
         return $this->scopes ?? [];
     }
 
+    #[\Override]
     public function can($ability)
     {
-        $abilities = $this->abilities();
+        $abilities = $this->getScopes();
 
         return \in_array('*', $abilities, true)
             || \array_key_exists($ability, array_flip($abilities));
     }
 
+    #[\Override]
     public function cant($ability)
     {
         return !$this->can($ability);
     }
 
-    /**
-     * checks whether the token has expire.
-     *
-     * @return bool
-     */
-    public function expires()
+
+    #[\Override]
+    public function expires(): bool
     {
-        $expiresAt = $this->expiresAt();
-        if (null === $expiresAt) {
+        ;
+        if (is_null($expiresAt = $this->expiresAt())) {
             return true;
         }
 
@@ -83,7 +83,7 @@ class AccessToken implements Token
      *
      * @return ?string
      */
-    public function expiresAt()
+    private function expiresAt()
     {
         return $this->expires_at ?? ($this->expiresAt ?? null);
     }
