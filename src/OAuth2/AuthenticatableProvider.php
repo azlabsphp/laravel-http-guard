@@ -19,10 +19,11 @@ use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Curl\REST\Client as Http;
 use Drewlabs\Curl\REST\Exceptions\BadRequestException;
 use Drewlabs\HttpGuard\Exceptions\AuthorizationException;
-use Drewlabs\HttpGuard\Exceptions\ServerException;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\Contracts\OAuth\PersonalAccessToken;
+use Drewlabs\Curl\REST\Exceptions\RequestException as BaseRequestException;
 use Drewlabs\HttpGuard\Contracts\BasicAuthSeverInterface;
+use Drewlabs\HttpGuard\Exceptions\RequestException;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\HttpGuard\User;
@@ -90,7 +91,7 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
                 return $user;
             }
 
-            throw new ServerException($e->getMessage(), (int)$e->getCode(), $e);
+            throw new RequestException($e->getMessage(), (int)$e->getCode(), $e);
         }
 
 
@@ -110,14 +111,14 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             }
         } catch (\Throwable $e) {
             if (is_null($user)) {
-                throw new ServerException($e->getMessage(), (int)$e->getCode(), $e);
+                throw new RequestException($e->getMessage(), (int)$e->getCode(), $e);
             }
 
             trigger_error("failed to fetch user info from authentication server, using a transient user with only user id", E_USER_WARNING);
         }
 
         if (is_null($user)) {
-            throw new ServerException('user not found', 400);
+            throw new RequestException('user not found', 400);
         }
 
         $user = $user->withAccessToken($authToken);
@@ -149,6 +150,8 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             }
         } catch (BadRequestException $e) {
             throw new ServerBadResponseException($e->getResponse());
+        } catch (BaseRequestException $e) {
+            throw new RequestException($e->getMessage(), (int)$e->getCode(), $e);
         }
     }
 

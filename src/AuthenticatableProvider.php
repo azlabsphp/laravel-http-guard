@@ -17,16 +17,16 @@ use Closure;
 use Drewlabs\Contracts\Auth\Authenticatable;
 use Drewlabs\Curl\REST\Client;
 use Drewlabs\Curl\REST\Exceptions\BadRequestException;
-use Drewlabs\Curl\REST\Exceptions\RequestException;
+use Drewlabs\Curl\REST\Exceptions\RequestException as BaseRequestException;
 use Drewlabs\Curl\REST\Response;
 use Drewlabs\HttpGuard\Contracts\ApiTokenAuthenticatableProvider;
 use Drewlabs\HttpGuard\Contracts\AuthenticatableCacheProvider;
 use Drewlabs\HttpGuard\Contracts\ServerInterface;
-use Drewlabs\HttpGuard\Exceptions\ServerException;
 use Drewlabs\HttpGuard\Exceptions\TokenExpiresException;
 use Drewlabs\HttpGuard\Exceptions\AuthorizationException;
 use Illuminate\Contracts\Auth\Authenticatable as BaseAuthenticatable;
 use Drewlabs\HttpGuard\Contracts\UserFactory as AbstractUserFactory;
+use Drewlabs\HttpGuard\Exceptions\RequestException;
 use Drewlabs\HttpGuard\Exceptions\ServerBadResponseException;
 
 final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
@@ -67,19 +67,17 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             if ($cache = $this->getCache()) {
                 $cache->delete($token);
             }
-        } catch (RequestException $e) {
+        } catch (BaseRequestException $e) {
             if (401 === $e->getStatus()) {
                 throw new AuthorizationException($token, $e->getStatus());
             }
-            throw $e;
+            throw new RequestException($e->getMessage(), (int)$e->getCode(), $e);
         } catch (BadRequestException $e) {
             if (($response = $e->getResponse()) && 401 === $response->getStatus()) {
                 throw new AuthorizationException($token, $response->getStatus());
             }
 
             throw new ServerBadResponseException($e->getResponse());
-        } catch (\Throwable $e) {
-            throw new ServerException($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 
@@ -100,24 +98,18 @@ final class AuthenticatableProvider implements ApiTokenAuthenticatableProvider
             }
 
             return $user;
-        } catch (RequestException $e) {
+        } catch (BaseRequestException $e) {
             if (401 === $e->getStatus()) {
                 throw new AuthorizationException($token, $e->getStatus());
             }
 
-            throw $e;
+            throw new RequestException($e->getMessage(), (int)$e->getCode(), $e);
         } catch (BadRequestException $e) {
             if (($response = $e->getResponse()) && 401 === $response->getStatus()) {
                 throw new AuthorizationException($token, $response->getStatus());
             }
 
             throw new ServerBadResponseException($e->getResponse());
-        } catch (\Throwable $e) {
-            if (!is_null($user = $this->fromCache($token))) {
-                return $user;
-            }
-
-            throw new ServerException($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 
