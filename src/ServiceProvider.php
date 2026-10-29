@@ -92,7 +92,7 @@ class ServiceProvider extends SupportServiceProvider
      *
      * @return RequestGuard
      */
-    private function createGuardInstance($app, $auth)
+    public function createGuardInstance($app, $auth)
     {
         /** @var Repository */
         $config = $app->make('config');
@@ -131,7 +131,7 @@ class ServiceProvider extends SupportServiceProvider
      *
      * @return AuthenticatableProvider
      */
-    private function createAuthenticatableProvider($app)
+    public function createAuthenticatableProvider($app)
     {
         /** @var Repository */
         $config = $app->make('config');
@@ -212,7 +212,7 @@ class ServiceProvider extends SupportServiceProvider
      * @param string $path 
      * @return CacheProvider|Redis|Memcached 
      */
-    private function cacheDriverFactory(Repository $config, string $driver, string $path)
+    public function cacheDriverFactory(Repository $config, string $driver, string $path)
     {
         switch (strtolower($driver)) {
             case 'array':
@@ -238,7 +238,7 @@ class ServiceProvider extends SupportServiceProvider
      * 
      * @return string 
      */
-    private function baseDirectory()
+    public function baseDirectory()
     {
         $dirname = \DIRECTORY_SEPARATOR . 'http-guard' . \DIRECTORY_SEPARATOR . 'cache';
         return $this->makeDirectory(sprintf('%s%s', rtrim($this->app->storagePath(), \DIRECTORY_SEPARATOR), $dirname));
