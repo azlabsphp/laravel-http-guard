@@ -33,9 +33,10 @@ class ServiceProvider extends SupportServiceProvider
      */
     public function boot()
     {
-        Auth::resolved(function ($auth) {
-            $auth->extend('http', function ($app) use ($auth) {
-                return tap($this->createGuardInstance($app, $auth), static function ($guard) use ($app) {
+        $provider = $this;
+        Auth::resolved(function ($auth) use ($provider){
+            $auth->extend('http', function ($app) use ($auth, $provider) {
+                return tap($provider->createGuardInstance($app, $auth), static function ($guard) use ($app) {
                     $app->refresh('request', $guard, 'setRequest');
                 });
             });
@@ -44,21 +45,23 @@ class ServiceProvider extends SupportServiceProvider
 
     public function register()
     {
+        $provider = $this;
+
         $this->app->bind(ApiTokenAuthenticatableProvider::class, function ($app) {
             /** @var Repository */
             $config = $app->make('config');
             return $app->make($config->get('auth.providers.' . $config->get('auth.guards.http.driver') . '.provider', OAuth2Provider::class));
         });
 
-        $this->app->bind(AuthenticatableProvider::class, function ($app) {
-            return $this->createAuthenticatableProvider($app);
+        $this->app->bind(AuthenticatableProvider::class, function ($app) use ($provider) {
+            return $provider->createAuthenticatableProvider($app);
         });
 
-        $this->app->bind(OAuth2Provider::class, function ($app) {
+        $this->app->bind(OAuth2Provider::class, function ($app) use ($provider) {
             $config = $app->make('config');
             $name = $config->get('auth.guards.http.driver');
             $driver = $config->get(sprintf('auth.providers.%s.cache.driver', $name), null);
-            $baseDirectory = $this->baseDirectory();
+            $baseDirectory = $provider->baseDirectory();
             $cachePath = $config->get(sprintf('auth.providers.%s.cache.path', $name), "$baseDirectory" . \DIRECTORY_SEPARATOR . "auth.dump");
             $serversPath = $baseDirectory . \DIRECTORY_SEPARATOR . 'node.sock';
             $primaryServer = $config->get('auth.providers.' . $name . '.hosts.primary');
@@ -77,7 +80,7 @@ class ServiceProvider extends SupportServiceProvider
                                 ->setTokenPath($config->get('auth.providers.' . $name . '.oauth2.paths.token', 'oauth/token'))
                                 ->setRevokeTokenPath($config->get('auth.providers.' . $name . '.oauth2.paths.revoke', 'oauth/revoke'));
 
-            return new OAuth2Provider($server, $driver ? $this->cacheDriverFactory($config, $driver, $cachePath) : null);
+            return new OAuth2Provider($server, $driver ? $provider->cacheDriverFactory($config, $driver, $cachePath) : null);
         });
     }
 
